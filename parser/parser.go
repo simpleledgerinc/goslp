@@ -177,20 +177,20 @@ func parseSLP(scriptPubKey []byte) (*ParseResult, error) {
 		return -1
 	}
 
-	bufferToBN := func() int {
+	bufferToBN := func() (int, error) {
 		if len(itObj) == 1 {
-			return extractU8()
+			return extractU8(), nil
 		}
 		if len(itObj) == 2 {
-			return extractU16(false)
+			return extractU16(false), nil
 		}
 		if len(itObj) == 4 {
-			return extractU32(false)
+			return extractU32(false), nil
 		}
 		if len(itObj) == 8 {
-			return extractU64(false)
+			return extractU64(false), nil
 		}
-		panic("extraction of number from buffer failed")
+		return 0, errors.New("extraction of number from buffer failed")
 	}
 
 	checkValidTokenID := func(tokenID []byte) bool {
@@ -254,8 +254,10 @@ func parseSLP(scriptPubKey []byte) (*ParseResult, error) {
 	if err != nil {
 		return nil, err
 	}
-	tokenType := bufferToBN()
-
+	tokenType, err := bufferToBN()
+	if err != nil {
+		return nil, err
+	}
 	err = PARSE_CHECK(tokenType != 0x01 &&
 		tokenType != 0x41 &&
 		tokenType != 0x81,
@@ -317,7 +319,10 @@ func parseSLP(scriptPubKey []byte) (*ParseResult, error) {
 			return nil, err
 		}
 
-		decimals := bufferToBN()
+		decimals, err := bufferToBN()
+		if err != nil {
+			return nil, err
+		}
 		err = PARSE_CHECK(decimals > 9, "decimals biger than 9")
 		if err != nil {
 			return nil, err
@@ -334,7 +339,10 @@ func parseSLP(scriptPubKey []byte) (*ParseResult, error) {
 			return nil, err
 		}
 		if len(mintBatonVoutBuf) > 0 {
-			mintBatonVout = bufferToBN()
+			mintBatonVout, err = bufferToBN()
+			if err != nil {
+				return nil, err
+			}
 			err = PARSE_CHECK(mintBatonVout < 2, "mintBatonVout must be at least 2")
 			if err != nil {
 				return nil, err
@@ -350,7 +358,10 @@ func parseSLP(scriptPubKey []byte) (*ParseResult, error) {
 		if err != nil {
 			return nil, err
 		}
-		qty := bufferToBN()
+		qty, err := bufferToBN()
+		if err != nil {
+			return nil, err
+		}
 
 		if tokenType == 0x41 {
 			err = PARSE_CHECK(decimals != 0, "NFT1 child token must have divisibility set to 0 decimal places")
@@ -415,7 +426,10 @@ func parseSLP(scriptPubKey []byte) (*ParseResult, error) {
 		}
 
 		if len(mintBatonVoutBuf) > 0 {
-			mintBatonVout = bufferToBN()
+			mintBatonVout, err = bufferToBN()
+			if err != nil {
+				return nil, err
+			}
 			err = PARSE_CHECK(mintBatonVout < 2, "mint_baton_vout must be at least 2")
 			if err != nil {
 				return nil, err
@@ -433,7 +447,10 @@ func parseSLP(scriptPubKey []byte) (*ParseResult, error) {
 			return nil, err
 		}
 
-		qty := bufferToBN()
+		qty, err := bufferToBN()
+		if err != nil {
+			return nil, err
+		}
 
 		return &ParseResult{
 			TokenType:       tokenType,
@@ -474,8 +491,11 @@ func parseSLP(scriptPubKey []byte) (*ParseResult, error) {
 				return nil, err
 			}
 
-			value := uint64(bufferToBN())
-			amounts = append(amounts, value)
+			value, err := bufferToBN()
+			if err != nil {
+				return nil, err
+			}
+			amounts = append(amounts, uint64(value))
 
 			cit++
 			if cit < len(chunks) {
