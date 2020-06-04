@@ -3,6 +3,7 @@ package parser
 import (
 	"encoding/binary"
 	"encoding/hex"
+	"errors"
 )
 
 // SlpGenesis is an unmarshalled Genesis OP_RETURN
@@ -71,7 +72,8 @@ type ParseResult struct {
 }
 
 // parseSLP unmarshalls an SLP message from a transaction scriptPubKey
-func parseSLP(scriptPubKey []byte) ParseResult {
+func parseSLP(scriptPubKey []byte) (*ParseResult, error) {
+	var err error
 	it := 0
 	itObj := scriptPubKey
 
@@ -81,10 +83,11 @@ func parseSLP(scriptPubKey []byte) ParseResult {
 	const OP_PUSHDATA2 int = 0x4d
 	const OP_PUSHDATA4 int = 0x4e
 
-	PARSE_CHECK := func(v bool, str string) {
+	PARSE_CHECK := func(v bool, str string) error {
 		if v {
-			panic(str)
+			return errors.New(str)
 		}
+		return nil
 	}
 
 	extractU8 := func() int {
@@ -125,9 +128,18 @@ func parseSLP(scriptPubKey []byte) ParseResult {
 		return int(r)
 	}
 
-	PARSE_CHECK(len(itObj) == 0, "scriptpubkey cannot be empty")
-	PARSE_CHECK(int(itObj[it]) != OP_RETURN, "scriptpubkey not op_return")
-	PARSE_CHECK(len(itObj) < 10, "scriptpubkey too small")
+	err = PARSE_CHECK(len(itObj) == 0, "scriptpubkey cannot be empty")
+	if err != nil {
+		return nil, err
+	}
+	err = PARSE_CHECK(int(itObj[it]) != OP_RETURN, "scriptpubkey not op_return")
+	if err != nil {
+		return nil, err
+	}
+	err = PARSE_CHECK(len(itObj) < 10, "scriptpubkey too small")
+	if err != nil {
+		return nil, err
+	}
 	it++
 
 	extractPushdata := func() int {
@@ -189,90 +201,173 @@ func parseSLP(scriptPubKey []byte) ParseResult {
 	for _len := extractPushdata(); _len >= 0; _len = extractPushdata() {
 		buf := make([]byte, _len)
 		copy(buf, itObj[it:it+_len])
-		PARSE_CHECK(it+_len > len(itObj), "pushdata data extraction failed")
+		err = PARSE_CHECK(it+_len > len(itObj), "pushdata data extraction failed")
+		if err != nil {
+			return nil, err
+		}
 		it += _len
 		chunks = append(chunks, buf)
 		if len(chunks) == 1 {
 			lokadID := chunks[0]
-			PARSE_CHECK(len(lokadID) != 4, "lokad id wrong size")
-			PARSE_CHECK(
+			err = PARSE_CHECK(len(lokadID) != 4, "lokad id wrong size")
+			if err != nil {
+				return nil, err
+			}
+			err = PARSE_CHECK(
 				string(lokadID[0]) != "S" ||
 					string(lokadID[1]) != "L" ||
 					string(lokadID[2]) != "P" ||
 					lokadID[3] != 0x00, "SLP not in first chunk",
 			)
+			if err != nil {
+				return nil, err
+			}
+
 		}
 	}
 
-	PARSE_CHECK(it != len(itObj), "trailing data")
-	PARSE_CHECK(len(chunks) == 0, "chunks empty")
+	err = PARSE_CHECK(it != len(itObj), "trailing data")
+	if err != nil {
+		return nil, err
+	}
+	err = PARSE_CHECK(len(chunks) == 0, "chunks empty")
+	if err != nil {
+		return nil, err
+	}
 
 	cit := 0
-	CHECK_NEXT := func() {
+	CHECK_NEXT := func() error {
 		cit++
-		PARSE_CHECK(cit == len(chunks), "parsing ended early")
+		err := PARSE_CHECK(cit == len(chunks), "parsing ended early")
 		it = 0
 		itObj = chunks[cit]
+		return err
 	}
-	CHECK_NEXT()
+	err = CHECK_NEXT()
+	if err != nil {
+		return nil, err
+	}
 
 	tokenTypeBuf := itObj
-	PARSE_CHECK(len(tokenTypeBuf) != 1 && len(tokenTypeBuf) != 2,
+	err = PARSE_CHECK(len(tokenTypeBuf) != 1 && len(tokenTypeBuf) != 2,
 		"token_type string length must be 1 or 2")
+	if err != nil {
+		return nil, err
+	}
 	tokenType := bufferToBN()
 
-	PARSE_CHECK(tokenType != 0x01 &&
+	err = PARSE_CHECK(tokenType != 0x01 &&
 		tokenType != 0x41 &&
 		tokenType != 0x81,
 		"token_type not token-type1, nft1-group, or nft1-child")
-	CHECK_NEXT()
+	if err != nil {
+		return nil, err
+	}
+	err = CHECK_NEXT()
+	if err != nil {
+		return nil, err
+	}
 
 	transactionType := string(itObj)
 	if transactionType == "GENESIS" {
-		PARSE_CHECK(len(chunks) != 10, "wrong number of chunks")
-		CHECK_NEXT()
+		err = PARSE_CHECK(len(chunks) != 10, "wrong number of chunks")
+		if err != nil {
+			return nil, err
+		}
+		err = CHECK_NEXT()
+		if err != nil {
+			return nil, err
+		}
 
 		ticker := itObj
-		CHECK_NEXT()
+		err = CHECK_NEXT()
+		if err != nil {
+			return nil, err
+		}
 
 		name := itObj
-		CHECK_NEXT()
+		err = CHECK_NEXT()
+		if err != nil {
+			return nil, err
+		}
 
 		documentURI := itObj
-		CHECK_NEXT()
+		err = CHECK_NEXT()
+		if err != nil {
+			return nil, err
+		}
 
 		documentHash := itObj
-		PARSE_CHECK(len(documentHash) != 0 && len(documentHash) != 32, "documentHash must be size 0 or 32")
-		CHECK_NEXT()
+		err = PARSE_CHECK(len(documentHash) != 0 && len(documentHash) != 32, "documentHash must be size 0 or 32")
+		if err != nil {
+			return nil, err
+		}
+		err = CHECK_NEXT()
+		if err != nil {
+			return nil, err
+		}
 
 		decimalsBuf := itObj
-		PARSE_CHECK(len(decimalsBuf) != 1, "decimals string length must be 1")
-		CHECK_NEXT()
+		err = PARSE_CHECK(len(decimalsBuf) != 1, "decimals string length must be 1")
+		if err != nil {
+			return nil, err
+		}
+		err = CHECK_NEXT()
+		if err != nil {
+			return nil, err
+		}
 
 		decimals := bufferToBN()
-		PARSE_CHECK(decimals > 9, "decimals biger than 9")
-		CHECK_NEXT()
+		err = PARSE_CHECK(decimals > 9, "decimals biger than 9")
+		if err != nil {
+			return nil, err
+		}
+		err = CHECK_NEXT()
+		if err != nil {
+			return nil, err
+		}
 
 		mintBatonVoutBuf := itObj
 		mintBatonVout := 0
-		PARSE_CHECK(len(mintBatonVoutBuf) >= 2, "mintBatonVout string must be 0 or 1")
+		err = PARSE_CHECK(len(mintBatonVoutBuf) >= 2, "mintBatonVout string must be 0 or 1")
+		if err != nil {
+			return nil, err
+		}
 		if len(mintBatonVoutBuf) > 0 {
 			mintBatonVout = bufferToBN()
-			PARSE_CHECK(mintBatonVout < 2, "mintBatonVout must be at least 2")
+			err = PARSE_CHECK(mintBatonVout < 2, "mintBatonVout must be at least 2")
+			if err != nil {
+				return nil, err
+			}
 		}
-		CHECK_NEXT()
+		err = CHECK_NEXT()
+		if err != nil {
+			return nil, err
+		}
 
 		qtyBuf := itObj
-		PARSE_CHECK(len(qtyBuf) != 8, "initialQty Must be provided as an 8-byte buffer")
+		err = PARSE_CHECK(len(qtyBuf) != 8, "initialQty Must be provided as an 8-byte buffer")
+		if err != nil {
+			return nil, err
+		}
 		qty := bufferToBN()
 
 		if tokenType == 0x41 {
-			PARSE_CHECK(decimals != 0, "NFT1 child token must have divisibility set to 0 decimal places")
-			PARSE_CHECK(mintBatonVout != 0, "NFT1 child token must not have a minting baton")
-			PARSE_CHECK(qty != 1, "NFT1 child token must have quantity of 1")
+			err = PARSE_CHECK(decimals != 0, "NFT1 child token must have divisibility set to 0 decimal places")
+			if err != nil {
+				return nil, err
+			}
+			err = PARSE_CHECK(mintBatonVout != 0, "NFT1 child token must not have a minting baton")
+			if err != nil {
+				return nil, err
+			}
+			err = PARSE_CHECK(qty != 1, "NFT1 child token must have quantity of 1")
+			if err != nil {
+				return nil, err
+			}
 		}
 
-		return ParseResult{
+		return &ParseResult{
 			TokenType:       tokenType,
 			TransactionType: transactionType,
 			Data: SlpGenesis{
@@ -284,31 +379,63 @@ func parseSLP(scriptPubKey []byte) ParseResult {
 				MintBatonVout: mintBatonVout,
 				Qty:           uint64(qty),
 			},
-		}
+		}, nil
 	} else if transactionType == "MINT" {
-		PARSE_CHECK(tokenType == 0x41, "NFT1 Child cannot have MINT transaction type.")
+		err = PARSE_CHECK(tokenType == 0x41, "NFT1 Child cannot have MINT transaction type.")
+		if err != nil {
+			return nil, err
+		}
 
-		PARSE_CHECK(len(chunks) != 6, "wrong number of chunks")
-		CHECK_NEXT()
+		err = PARSE_CHECK(len(chunks) != 6, "wrong number of chunks")
+		if err != nil {
+			return nil, err
+		}
+
+		err = CHECK_NEXT()
+		if err != nil {
+			return nil, err
+		}
 
 		tokenID := itObj
-		PARSE_CHECK(!checkValidTokenID(tokenID), "tokenID invalid size")
-		CHECK_NEXT()
+		err = PARSE_CHECK(!checkValidTokenID(tokenID), "tokenID invalid size")
+		if err != nil {
+			return nil, err
+		}
+
+		err = CHECK_NEXT()
+		if err != nil {
+			return nil, err
+		}
 
 		mintBatonVoutBuf := itObj
 		mintBatonVout := 0
-		PARSE_CHECK(len(mintBatonVoutBuf) >= 2, "mint_baton_vout string length must be 0 or 1")
+		err = PARSE_CHECK(len(mintBatonVoutBuf) >= 2, "mint_baton_vout string length must be 0 or 1")
+		if err != nil {
+			return nil, err
+		}
+
 		if len(mintBatonVoutBuf) > 0 {
 			mintBatonVout = bufferToBN()
-			PARSE_CHECK(mintBatonVout < 2, "mint_baton_vout must be at least 2")
+			err = PARSE_CHECK(mintBatonVout < 2, "mint_baton_vout must be at least 2")
+			if err != nil {
+				return nil, err
+			}
+
 		}
-		CHECK_NEXT()
+		err = CHECK_NEXT()
+		if err != nil {
+			return nil, err
+		}
 
 		addiitionalQtyBuf := itObj
-		PARSE_CHECK(len(addiitionalQtyBuf) != 8, "additional_qty must be provided as an 8-byte buffer")
+		err = PARSE_CHECK(len(addiitionalQtyBuf) != 8, "additional_qty must be provided as an 8-byte buffer")
+		if err != nil {
+			return nil, err
+		}
+
 		qty := bufferToBN()
 
-		return ParseResult{
+		return &ParseResult{
 			TokenType:       tokenType,
 			TransactionType: transactionType,
 			Data: SlpMint{
@@ -316,19 +443,36 @@ func parseSLP(scriptPubKey []byte) ParseResult {
 				MintBatonVout: mintBatonVout,
 				Qty:           uint64(qty),
 			},
-		}
+		}, nil
 	} else if transactionType == "SEND" {
-		PARSE_CHECK(len(chunks) < 4, "wrong number of chunks")
-		CHECK_NEXT()
+		err = PARSE_CHECK(len(chunks) < 4, "wrong number of chunks")
+		if err != nil {
+			return nil, err
+		}
+
+		err = CHECK_NEXT()
+		if err != nil {
+			return nil, err
+		}
 
 		tokenID := itObj
-		PARSE_CHECK(!checkValidTokenID(tokenID), "tokenId invalid size")
-		CHECK_NEXT()
+		err = PARSE_CHECK(!checkValidTokenID(tokenID), "tokenId invalid size")
+		if err != nil {
+			return nil, err
+		}
+
+		err = CHECK_NEXT()
+		if err != nil {
+			return nil, err
+		}
 
 		amounts := make([]uint64, 0)
 		for cit != len(chunks) {
 			amountBuf := itObj
-			PARSE_CHECK(len(amountBuf) != 8, "amount string size not 8 bytes")
+			err = PARSE_CHECK(len(amountBuf) != 8, "amount string size not 8 bytes")
+			if err != nil {
+				return nil, err
+			}
 
 			value := uint64(bufferToBN())
 			amounts = append(amounts, value)
@@ -340,18 +484,25 @@ func parseSLP(scriptPubKey []byte) ParseResult {
 			it = 0
 		}
 
-		PARSE_CHECK(len(amounts) == 0, "token_amounts size is 0")
-		PARSE_CHECK(len(amounts) > 19, "token_amounts size is greater than 19")
+		err = PARSE_CHECK(len(amounts) == 0, "token_amounts size is 0")
+		if err != nil {
+			return nil, err
+		}
 
-		return ParseResult{
+		err = PARSE_CHECK(len(amounts) > 19, "token_amounts size is greater than 19")
+		if err != nil {
+			return nil, err
+		}
+
+		return &ParseResult{
 			TokenType:       tokenType,
 			TransactionType: transactionType,
 			Data: SlpSend{
 				TokenID: tokenID,
 				Amounts: amounts,
 			},
-		}
+		}, nil
 	}
 
-	panic("impossible parsing result")
+	return nil, errors.New("impossible parsing result")
 }
