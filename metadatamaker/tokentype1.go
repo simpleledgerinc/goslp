@@ -7,7 +7,7 @@ func TokenType1Genesis(
 	documentUrl []byte,
 	documentHash []byte,
 	decimals int,
-	mintBatonVout int,
+	mintBatonVout *MintBatonVout,
 	quantity uint64,
 ) ([]byte, error) {
 	return CreateOpReturnGenesis(
@@ -22,7 +22,7 @@ func TokenType1Genesis(
 	)
 }
 
-func TokenType1Mint(tokenIdHex []byte, mintBatonVout int, quantity uint64) ([]byte, error) {
+func TokenType1Mint(tokenIdHex []byte, mintBatonVout *MintBatonVout, quantity uint64) ([]byte, error) {
 	return CreateOpReturnMint(0x01, tokenIdHex, mintBatonVout, quantity)
 }
 

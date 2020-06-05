@@ -7,7 +7,7 @@ func NFT1GroupGenesis(
 	documentUrl []byte,
 	documentHash []byte,
 	decimals int,
-	mintBatonVout int,
+	mintBatonVout *MintBatonVout,
 	quantity uint64,
 ) ([]byte, error) {
 	return CreateOpReturnGenesis(
@@ -22,7 +22,7 @@ func NFT1GroupGenesis(
 	)
 }
 
-func NFT1GroupMint(tokenIdHex []byte, mintBatonVout int, quantity uint64) ([]byte, error) {
+func NFT1GroupMint(tokenIdHex []byte, mintBatonVout *MintBatonVout, quantity uint64) ([]byte, error) {
 	return CreateOpReturnMint(0x81, tokenIdHex, mintBatonVout, quantity)
 }
 
@@ -37,7 +37,7 @@ func NFT1ChildGenesis(
 	documentUrl []byte,
 	documentHash []byte,
 	decimals int,
-	mintBatonVout int,
+	mintBatonVout *MintBatonVout,
 	quantity uint64,
 ) ([]byte, error) {
 	return CreateOpReturnGenesis(
