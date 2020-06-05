@@ -13,10 +13,6 @@ type MintBatonVout struct {
 
 // https://golang.org/ref/spec#Slice_types
 // max len is int-1 which is size of the default integer on target build
-// TODO find out if we need error handling here?
-// we might want to do system sanity check at compile time
-// or possibly use something other...
-// this is kind of edge case either way
 func pushdata(buf []byte) []byte {
 	bufLen := len(buf)
 
