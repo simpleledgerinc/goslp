@@ -35,9 +35,7 @@ func pushdata(buf []byte) []byte {
 		binary.LittleEndian.PutUint32(tmp, uint32(bufLen))
 		return bytes.Join([][]byte{[]byte{0x4E}, tmp, buf}, []byte{})
 	} else {
-		tmp := make([]byte, 8)
-		binary.LittleEndian.PutUint64(tmp, uint64(bufLen))
-		return bytes.Join([][]byte{[]byte{0x4F}, tmp, buf}, []byte{})
+		panic("pushdata cannot support more than 0xFFFFFFFF elements")
 	}
 }
 
