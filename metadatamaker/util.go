@@ -6,12 +6,13 @@ import (
 	"errors"
 )
 
+// mostly used as optional container
+type MintBatonVout struct {
+	vout int
+}
+
 // https://golang.org/ref/spec#Slice_types
 // max len is int-1 which is size of the default integer on target build
-// TODO find out if we need error handling here?
-// we might want to do system sanity check at compile time
-// or possibly use something other...
-// this is kind of edge case either way
 func pushdata(buf []byte) []byte {
 	bufLen := len(buf)
 
@@ -30,9 +31,7 @@ func pushdata(buf []byte) []byte {
 		binary.LittleEndian.PutUint32(tmp, uint32(bufLen))
 		return bytes.Join([][]byte{[]byte{0x4E}, tmp, buf}, []byte{})
 	} else {
-		tmp := make([]byte, 8)
-		binary.LittleEndian.PutUint64(tmp, uint64(bufLen))
-		return bytes.Join([][]byte{[]byte{0x4F}, tmp, buf}, []byte{})
+		panic("pushdata cannot support more than 0xFFFFFFFF elements")
 	}
 }
 
@@ -43,8 +42,6 @@ func makeU64BigEndianBytes(v uint64) []byte {
 	return tmp
 }
 
-// mintBatonVout -- 0 means null
-// TODO is there more idiomatic way to represent optional here?
 func CreateOpReturnGenesis(
 	versionType int,
 	ticker []byte,
@@ -52,7 +49,7 @@ func CreateOpReturnGenesis(
 	documentUrl []byte,
 	documentHash []byte,
 	decimals int,
-	mintBatonVout int,
+	mintBatonVout *MintBatonVout,
 	quantity uint64,
 ) ([]byte, error) {
 	if versionType != 0x01 && versionType != 0x41 && versionType != 0x81 {
@@ -75,17 +72,17 @@ func CreateOpReturnGenesis(
 			return nil, errors.New("decimals must be 0 for NFT1 child genesis")
 		}
 
-		if mintBatonVout != 0 {
+		if mintBatonVout != nil {
 			return nil, errors.New("mintBatonVout must be null for NFT1 child genesis")
 		}
 	}
 
 	mintBatonVoutBytes := []byte{}
-	if mintBatonVout != 0 {
-		if mintBatonVout < 2 || mintBatonVout > 0xFF {
+	if mintBatonVout != nil {
+		if mintBatonVout.vout < 2 || mintBatonVout.vout > 0xFF {
 			return nil, errors.New("mintBatonVout out of range (0x02 < > 0xFF)")
 		}
-		mintBatonVoutBytes = []byte{uint8(mintBatonVout)}
+		mintBatonVoutBytes = []byte{uint8(mintBatonVout.vout)}
 	}
 
 	buf := bytes.Join([][]byte{
@@ -105,7 +102,7 @@ func CreateOpReturnGenesis(
 	return buf, nil
 }
 
-func CreateOpReturnMint(versionType int, tokenIdHex []byte, mintBatonVout int, quantity uint64) ([]byte, error) {
+func CreateOpReturnMint(versionType int, tokenIdHex []byte, mintBatonVout *MintBatonVout, quantity uint64) ([]byte, error) {
 	if versionType != 0x01 && versionType != 0x41 && versionType != 0x81 {
 		return nil, errors.New("unknown versionType")
 	}
@@ -115,11 +112,11 @@ func CreateOpReturnMint(versionType int, tokenIdHex []byte, mintBatonVout int, q
 	}
 
 	mintBatonVoutBytes := []byte{}
-	if mintBatonVout != 0 {
-		if mintBatonVout < 2 || mintBatonVout > 0xFF {
+	if mintBatonVout != nil {
+		if mintBatonVout.vout < 2 || mintBatonVout.vout > 0xFF {
 			return nil, errors.New("mintBatonVout out of range (0x02 < > 0xFF)")
 		}
-		mintBatonVoutBytes = []byte{uint8(mintBatonVout)}
+		mintBatonVoutBytes = []byte{uint8(mintBatonVout.vout)}
 	}
 
 	buf := bytes.Join([][]byte{
