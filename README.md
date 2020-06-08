@@ -1,4 +1,6 @@
-# GoSlp
+# GoSlp (WIP)
+
+Do NOT Use, still in early development
 
 GoSlp is a set of individual golang packages for SLP.  Go packages includes:
 
