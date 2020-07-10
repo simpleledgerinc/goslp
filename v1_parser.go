@@ -1,4 +1,4 @@
-package parser
+package v1parser
 
 import (
 	"encoding/binary"
@@ -308,10 +308,6 @@ func ParseSLP(scriptPubKey []byte) (*ParseResult, error) {
 		decimalsBuf := itObj
 
 		if err := parseCheck(len(decimalsBuf) != 1, "decimals string length must be 1"); err != nil {
-			return nil, err
-		}
-
-		if err := checkNext(); err != nil {
 			return nil, err
 		}
 
