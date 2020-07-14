@@ -4,6 +4,7 @@ import (
 	"encoding/binary"
 	"encoding/hex"
 	"errors"
+	"math/big"
 )
 
 // SlpGenesis is an unmarshalled Genesis OP_RETURN
@@ -69,6 +70,33 @@ type ParseResult struct {
 	TokenType       int
 	TransactionType string
 	Data            SlpOpReturn
+}
+
+// TotalSlpMsgOutputValue computes the output amount transfered in a transaction
+func (r *ParseResult) TotalSlpMsgOutputValue() (*big.Int, error) {
+	if !(r.TokenType == 0x01 ||
+		r.TokenType == 0x41 ||
+		r.TokenType == 0x81) {
+		return nil, errors.New("cannot compute total output transfer value for unsupported token type")
+	}
+
+	var total big.Int
+	if r.TransactionType == "SEND" {
+		var _v big.Int
+		for v := range r.Data.(SlpSend).Amounts {
+			_v.SetUint64(uint64(v))
+			total.Add(&total, &_v)
+		}
+	} else if r.TransactionType == "MINT" {
+		var _v big.Int
+		_v.SetUint64(uint64(r.Data.(SlpMint).Qty))
+		total.Add(&total, &_v)
+	} else if r.TransactionType == "GENESIS" {
+		var _v big.Int
+		_v.SetUint64(uint64(r.Data.(SlpGenesis).Qty))
+		total.Add(&total, &_v)
+	}
+	return &total, nil
 }
 
 // ParseSLP unmarshalls an SLP message from a transaction scriptPubKey.
