@@ -72,6 +72,33 @@ type ParseResult struct {
 	Data            SlpOpReturn
 }
 
+// GetVoutAmount returns the output amount for a given transaction output index
+func (r *ParseResult) GetVoutAmount(vout int) (*big.Int, error) {
+	var amt big.Int
+
+	if !(r.TokenType == 0x01 ||
+		r.TokenType == 0x41 ||
+		r.TokenType == 0x81) {
+		return nil, errors.New("cannot extract amount for not type 1 or NFT1 token")
+	}
+
+	if vout == 0 {
+		return amt.SetUint64(0), nil
+	}
+
+	if r.TransactionType == "SEND" {
+		if vout > len(r.Data.(SlpSend).Amounts) {
+			return amt.SetUint64(0), nil
+		}
+		return amt.SetUint64(r.Data.(SlpSend).Amounts[vout-1]), nil
+	} else if r.TransactionType == "MINT" {
+		return amt.SetUint64(r.Data.(SlpMint).Qty), nil
+	} else if r.TransactionType == "GENESIS" {
+		return amt.SetUint64(r.Data.(SlpGenesis).Qty), nil
+	}
+	return nil, errors.New("unknown error")
+}
+
 // TotalSlpMsgOutputValue computes the output amount transfered in a transaction
 func (r *ParseResult) TotalSlpMsgOutputValue() (*big.Int, error) {
 	if !(r.TokenType == 0x01 ||
