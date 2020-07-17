@@ -1,3 +1,7 @@
+# 0.0.5
+
+- add utils.go with GetSlpVersionType() and GetSlpTokenID() methods
+
 # 0.0.4
 
 - add ParseResult.TotalSlpMsgOutputValue
