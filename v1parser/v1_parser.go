@@ -74,7 +74,7 @@ type ParseResult struct {
 
 // GetVoutAmount returns the output amount for a given transaction output index
 func (r *ParseResult) GetVoutAmount(vout int) (*big.Int, error) {
-	var amt big.Int
+	amt := big.NewInt(0)
 
 	if !(r.TokenType == 0x01 ||
 		r.TokenType == 0x41 ||
@@ -83,20 +83,20 @@ func (r *ParseResult) GetVoutAmount(vout int) (*big.Int, error) {
 	}
 
 	if vout == 0 {
-		return amt.SetUint64(0), nil
+		return amt, nil
 	}
 
 	if r.TransactionType == "SEND" {
 		if vout > len(r.Data.(SlpSend).Amounts) {
-			return amt.SetUint64(0), nil
+			return amt, nil
 		}
-		return amt.SetUint64(r.Data.(SlpSend).Amounts[vout-1]), nil
+		return amt.Add(amt, big.NewInt(int64(r.Data.(SlpSend).Amounts[vout-1]))), nil
 	} else if r.TransactionType == "MINT" {
-		return amt.SetUint64(r.Data.(SlpMint).Qty), nil
+		return amt.Add(amt, big.NewInt(int64(r.Data.(SlpMint).Qty))), nil
 	} else if r.TransactionType == "GENESIS" {
-		return amt.SetUint64(r.Data.(SlpGenesis).Qty), nil
+		return amt.Add(amt, big.NewInt(int64(r.Data.(SlpGenesis).Qty))), nil
 	}
-	return nil, errors.New("unknown error")
+	return nil, errors.New("unknown error getting vout amount")
 }
 
 // TotalSlpMsgOutputValue computes the output amount transfered in a transaction

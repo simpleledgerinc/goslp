@@ -16,12 +16,48 @@ func TestGetOutputAmountSend(t *testing.T) {
 	}
 }
 
+func TestGetOutputAmountMint(t *testing.T) {
+	scriptPubKey, _ := hex.DecodeString("6a04534c50000101044d494e5420d6876f0fce603be43f15d34348bb1de1a8d688e1152596543da033a060cff798010208000000000bebc200")
+	slpMsg, _ := ParseSLP(scriptPubKey)
+	amt, _ := slpMsg.GetVoutAmount(1)
+	if amt.Cmp(big.NewInt(200000000)) != 0 {
+		t.Fatal("incorrect amount parsed for index")
+	}
+}
+
+func TestGetOutputAmountGenesis(t *testing.T) {
+	scriptPubKey, _ := hex.DecodeString("6a04534c500001010747454e45534953074f6e65436f696e074f6e65436f696e4c5468747470733a2f2f7468656e6578747765622e636f6d2f68617264666f726b2f323031392f31322f32332f6f6e65636f696e2d63727970746f63757272656e63792d7363616d2d6e6565642d746f2d6b6e6f772f4c00010401020800000061c9f36800")
+	slpMsg, _ := ParseSLP(scriptPubKey)
+	amt, _ := slpMsg.GetVoutAmount(1)
+	if amt.Cmp(big.NewInt(420000000000)) != 0 {
+		t.Fatal("incorrect amount parsed for index")
+	}
+}
+
 func TestTotalOutputAmountSend(t *testing.T) {
 	scriptPubKey, _ := hex.DecodeString("6a04534c500001010453454e4420c4b0d62156b3fa5c8f3436079b5394f7edc1bef5dc1cd2f9d0c4d46f82cca47908000000000000000108000000000000000408000000000000005a")
 	slpMsg, _ := ParseSLP(scriptPubKey)
 	amt, _ := slpMsg.TotalSlpMsgOutputValue()
 	if amt.Cmp(big.NewInt(95)) != 0 {
 		t.Fatal("incorrect total amount from SEND script")
+	}
+}
+
+func TestTotalOutputAmountMint(t *testing.T) {
+	scriptPubKey, _ := hex.DecodeString("6a04534c50000101044d494e5420d6876f0fce603be43f15d34348bb1de1a8d688e1152596543da033a060cff798010208000000000bebc200")
+	slpMsg, _ := ParseSLP(scriptPubKey)
+	amt, _ := slpMsg.TotalSlpMsgOutputValue()
+	if amt.Cmp(big.NewInt(200000000)) != 0 {
+		t.Fatal("incorrect total amount from script")
+	}
+}
+
+func TestTotalOutputAmountGenesis(t *testing.T) {
+	scriptPubKey, _ := hex.DecodeString("6a04534c500001010747454e45534953074f6e65436f696e074f6e65436f696e4c5468747470733a2f2f7468656e6578747765622e636f6d2f68617264666f726b2f323031392f31322f32332f6f6e65636f696e2d63727970746f63757272656e63792d7363616d2d6e6565642d746f2d6b6e6f772f4c00010401020800000061c9f36800")
+	slpMsg, _ := ParseSLP(scriptPubKey)
+	amt, _ := slpMsg.TotalSlpMsgOutputValue()
+	if amt.Cmp(big.NewInt(420000000000)) != 0 {
+		t.Fatal("incorrect total amount from script")
 	}
 }
 
