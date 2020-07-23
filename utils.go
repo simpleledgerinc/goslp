@@ -42,12 +42,7 @@ func GetSlpTokenID(tx *wire.MsgTx) ([]byte, error) {
 		return slpMsg.Data.(v1parser.SlpMint).TokenID, nil
 	} else if slpMsg.TransactionType == "GENESIS" {
 		hash := tx.TxHash()
-		var tokenID []byte
-		// reverse the bytes here since tokenID is coming from txn hash
-		for i := len(hash[:]) - 1; i >= 0; i-- {
-			tokenID = append(tokenID, hash[i])
-		}
-		return tokenID, nil
+		return hash[:], nil
 	} else {
 		panic("unknown error has occured")
 	}
