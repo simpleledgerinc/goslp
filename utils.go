@@ -1,7 +1,6 @@
 package goslp
 
 import (
-	"encoding/hex"
 	"errors"
 
 	"github.com/gcash/bchd/wire"
@@ -42,9 +41,10 @@ func GetSlpTokenID(tx *wire.MsgTx) ([]byte, error) {
 	} else if slpMsg.TransactionType == "MINT" {
 		return slpMsg.Data.(v1parser.SlpMint).TokenID, nil
 	} else if slpMsg.TransactionType == "GENESIS" {
-		hash, _ := hex.DecodeString(tx.TxHash().String())
+		hash := tx.TxHash()
 		var tokenID []byte
-		for i := len(hash) - 1; i >= 0; i-- {
+		// reverse the bytes here since tokenID is coming from txn hash
+		for i := len(hash[:]) - 1; i >= 0; i-- {
 			tokenID = append(tokenID, hash[i])
 		}
 		return tokenID, nil
