@@ -107,23 +107,17 @@ func (r *ParseResult) TotalSlpMsgOutputValue() (*big.Int, error) {
 		return nil, errors.New("cannot compute total output transfer value for unsupported token type")
 	}
 
-	var total big.Int
+	total := big.NewInt(0)
 	if r.TransactionType == "SEND" {
-		var _v big.Int
-		for v := range r.Data.(SlpSend).Amounts {
-			_v.SetUint64(uint64(v))
-			total.Add(&total, &_v)
+		for _, amt := range r.Data.(SlpSend).Amounts {
+			total.Add(total, big.NewInt(int64(amt)))
 		}
 	} else if r.TransactionType == "MINT" {
-		var _v big.Int
-		_v.SetUint64(uint64(r.Data.(SlpMint).Qty))
-		total.Add(&total, &_v)
+		total.Add(total, big.NewInt(int64(r.Data.(SlpMint).Qty)))
 	} else if r.TransactionType == "GENESIS" {
-		var _v big.Int
-		_v.SetUint64(uint64(r.Data.(SlpGenesis).Qty))
-		total.Add(&total, &_v)
+		total.Add(total, big.NewInt(int64(r.Data.(SlpGenesis).Qty)))
 	}
-	return &total, nil
+	return total, nil
 }
 
 // ParseSLP unmarshalls an SLP message from a transaction scriptPubKey.

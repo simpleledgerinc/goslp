@@ -2,9 +2,28 @@ package v1parser
 
 import (
 	"encoding/hex"
+	"math/big"
 	"reflect"
 	"testing"
 )
+
+func TestGetOutputAmountSend(t *testing.T) {
+	scriptPubKey, _ := hex.DecodeString("6a04534c500001010453454e4420c4b0d62156b3fa5c8f3436079b5394f7edc1bef5dc1cd2f9d0c4d46f82cca47908000000000000000108000000000000000408000000000000005a")
+	slpMsg, _ := ParseSLP(scriptPubKey)
+	amt, _ := slpMsg.GetVoutAmount(3)
+	if amt.Cmp(big.NewInt(90)) != 0 {
+		t.Fatal("incorrect amount parsed for index")
+	}
+}
+
+func TestTotalOutputAmountSend(t *testing.T) {
+	scriptPubKey, _ := hex.DecodeString("6a04534c500001010453454e4420c4b0d62156b3fa5c8f3436079b5394f7edc1bef5dc1cd2f9d0c4d46f82cca47908000000000000000108000000000000000408000000000000005a")
+	slpMsg, _ := ParseSLP(scriptPubKey)
+	amt, _ := slpMsg.TotalSlpMsgOutputValue()
+	if amt.Cmp(big.NewInt(95)) != 0 {
+		t.Fatal("incorrect total amount from SEND script")
+	}
+}
 
 func TestGenesisParseSlp(t *testing.T) {
 	scriptPubKey, _ := hex.DecodeString("6a04534c500001010747454e455349534c004c004c004c0001004c0008ffffffffffffffff")
