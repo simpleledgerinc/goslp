@@ -25,11 +25,29 @@ func TestGetOutputAmountMint(t *testing.T) {
 	}
 }
 
+func TestGetOutputAmountMintVout2(t *testing.T) {
+	scriptPubKey, _ := hex.DecodeString("6a04534c50000101044d494e5420d6876f0fce603be43f15d34348bb1de1a8d688e1152596543da033a060cff798010208000000000bebc200")
+	slpMsg, _ := ParseSLP(scriptPubKey)
+	amt, _ := slpMsg.GetVoutAmount(2)
+	if amt.Cmp(big.NewInt(0)) != 0 {
+		t.Fatal("incorrect amount parsed for index")
+	}
+}
+
 func TestGetOutputAmountGenesis(t *testing.T) {
 	scriptPubKey, _ := hex.DecodeString("6a04534c500001010747454e45534953074f6e65436f696e074f6e65436f696e4c5468747470733a2f2f7468656e6578747765622e636f6d2f68617264666f726b2f323031392f31322f32332f6f6e65636f696e2d63727970746f63757272656e63792d7363616d2d6e6565642d746f2d6b6e6f772f4c00010401020800000061c9f36800")
 	slpMsg, _ := ParseSLP(scriptPubKey)
 	amt, _ := slpMsg.GetVoutAmount(1)
 	if amt.Cmp(big.NewInt(420000000000)) != 0 {
+		t.Fatal("incorrect amount parsed for index")
+	}
+}
+
+func TestGetOutputAmountGenesisVout2(t *testing.T) {
+	scriptPubKey, _ := hex.DecodeString("6a04534c500001010747454e45534953074f6e65436f696e074f6e65436f696e4c5468747470733a2f2f7468656e6578747765622e636f6d2f68617264666f726b2f323031392f31322f32332f6f6e65636f696e2d63727970746f63757272656e63792d7363616d2d6e6565642d746f2d6b6e6f772f4c00010401020800000061c9f36800")
+	slpMsg, _ := ParseSLP(scriptPubKey)
+	amt, _ := slpMsg.GetVoutAmount(2)
+	if amt.Cmp(big.NewInt(0)) != 0 {
 		t.Fatal("incorrect amount parsed for index")
 	}
 }
