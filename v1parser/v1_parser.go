@@ -92,9 +92,15 @@ func (r *ParseResult) GetVoutAmount(vout int) (*big.Int, error) {
 		}
 		return amt.Add(amt, big.NewInt(int64(r.Data.(SlpSend).Amounts[vout-1]))), nil
 	} else if r.TransactionType == "MINT" {
-		return amt.Add(amt, big.NewInt(int64(r.Data.(SlpMint).Qty))), nil
+		if vout == 1 {
+			return amt.Add(amt, big.NewInt(int64(r.Data.(SlpMint).Qty))), nil
+		}
+		return amt, nil
 	} else if r.TransactionType == "GENESIS" {
-		return amt.Add(amt, big.NewInt(int64(r.Data.(SlpGenesis).Qty))), nil
+		if vout == 1 {
+			return amt.Add(amt, big.NewInt(int64(r.Data.(SlpGenesis).Qty))), nil
+		}
+		return amt, nil
 	}
 	return nil, errors.New("unknown error getting vout amount")
 }
