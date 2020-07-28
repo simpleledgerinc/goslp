@@ -2,6 +2,7 @@ package v1parser
 
 import (
 	"encoding/hex"
+	"fmt"
 	"math/big"
 	"reflect"
 	"testing"
@@ -13,6 +14,18 @@ func TestGetOutputAmountSend(t *testing.T) {
 	amt, _ := slpMsg.GetVoutAmount(3)
 	if amt.Cmp(big.NewInt(90)) != 0 {
 		t.Fatal("incorrect amount parsed for index")
+	}
+}
+
+func TestGetOutputAmountSendNotNegative(t *testing.T) {
+	scriptPubKey, _ := hex.DecodeString("6a04534c500001010453454e4420c4b0d62156b3fa5c8f3436079b5394f7edc1bef5dc1cd2f9d0c4d46f82cca47908ffffffffffffffff")
+	slpMsg, _ := ParseSLP(scriptPubKey)
+	amt, _ := slpMsg.GetVoutAmount(1)
+	if amt.Cmp(big.NewInt(0)) < 1 {
+		t.Fatal("amount is less than zero")
+	}
+	if amt.Cmp(new(big.Int).SetUint64(18446744073709551615)) != 0 {
+		t.Fatal("amount is incorrect")
 	}
 }
 
@@ -34,6 +47,18 @@ func TestGetOutputAmountMintVout2(t *testing.T) {
 	}
 }
 
+func TestGetOutputAmountMintVoutNotNegative(t *testing.T) {
+	scriptPubKey, _ := hex.DecodeString("6a04534c50000101044d494e5420d6876f0fce603be43f15d34348bb1de1a8d688e1152596543da033a060cff798010208ffffffffffffffff")
+	slpMsg, _ := ParseSLP(scriptPubKey)
+	amt, _ := slpMsg.GetVoutAmount(1)
+	if amt.Cmp(big.NewInt(0)) < 1 {
+		t.Fatal("amount is less than zero")
+	}
+	if amt.Cmp(new(big.Int).SetUint64(18446744073709551615)) != 0 {
+		t.Fatal("amount is incorrect")
+	}
+}
+
 func TestGetOutputAmountGenesis(t *testing.T) {
 	scriptPubKey, _ := hex.DecodeString("6a04534c500001010747454e45534953074f6e65436f696e074f6e65436f696e4c5468747470733a2f2f7468656e6578747765622e636f6d2f68617264666f726b2f323031392f31322f32332f6f6e65636f696e2d63727970746f63757272656e63792d7363616d2d6e6565642d746f2d6b6e6f772f4c00010401020800000061c9f36800")
 	slpMsg, _ := ParseSLP(scriptPubKey)
@@ -52,12 +77,35 @@ func TestGetOutputAmountGenesisVout2(t *testing.T) {
 	}
 }
 
+func TestGetOutputAmountGenesisVoutNotNegative(t *testing.T) {
+	scriptPubKey, _ := hex.DecodeString("6a04534c500001010747454e45534953074f6e65436f696e074f6e65436f696e4c5468747470733a2f2f7468656e6578747765622e636f6d2f68617264666f726b2f323031392f31322f32332f6f6e65636f696e2d63727970746f63757272656e63792d7363616d2d6e6565642d746f2d6b6e6f772f4c000104010208ffffffffffffffff")
+	slpMsg, _ := ParseSLP(scriptPubKey)
+	amt, _ := slpMsg.GetVoutAmount(1)
+	fmt.Println(amt.Text(10))
+	if amt.Cmp(big.NewInt(0)) < 1 {
+		t.Fatal("amount is less than zero")
+	}
+	if amt.Cmp(new(big.Int).SetUint64(18446744073709551615)) != 0 {
+		t.Fatal("amount is incorrect")
+	}
+}
+
 func TestTotalOutputAmountSend(t *testing.T) {
 	scriptPubKey, _ := hex.DecodeString("6a04534c500001010453454e4420c4b0d62156b3fa5c8f3436079b5394f7edc1bef5dc1cd2f9d0c4d46f82cca47908000000000000000108000000000000000408000000000000005a")
 	slpMsg, _ := ParseSLP(scriptPubKey)
 	amt, _ := slpMsg.TotalSlpMsgOutputValue()
 	if amt.Cmp(big.NewInt(95)) != 0 {
 		t.Fatal("incorrect total amount from SEND script")
+	}
+}
+
+func TestGetTotalOutputAmountSendNotNegative(t *testing.T) {
+	scriptPubKey, _ := hex.DecodeString("6a04534c500001010453454e442044e3d05a07091091a63a4074287a784fcd96c26095682e05c22c4bd4e5bf8681080000000000000001080000000000000001080000000000000001080000000000000001080000000000000001080000000000000001080000000000000001080000000000000001088ac7230489e80000")
+	slpMsg, _ := ParseSLP(scriptPubKey)
+	amt, _ := slpMsg.TotalSlpMsgOutputValue()
+	fmt.Println(amt.Text(10))
+	if amt.Cmp(big.NewInt(0)) < 1 {
+		t.Fatal("amount is less than zero")
 	}
 }
 

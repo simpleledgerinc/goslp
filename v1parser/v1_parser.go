@@ -90,15 +90,15 @@ func (r *ParseResult) GetVoutAmount(vout int) (*big.Int, error) {
 		if vout > len(r.Data.(SlpSend).Amounts) {
 			return amt, nil
 		}
-		return amt.Add(amt, big.NewInt(int64(r.Data.(SlpSend).Amounts[vout-1]))), nil
+		return amt.Add(amt, new(big.Int).SetUint64(r.Data.(SlpSend).Amounts[vout-1])), nil
 	} else if r.TransactionType == "MINT" {
 		if vout == 1 {
-			return amt.Add(amt, big.NewInt(int64(r.Data.(SlpMint).Qty))), nil
+			return amt.Add(amt, new(big.Int).SetUint64(r.Data.(SlpMint).Qty)), nil
 		}
 		return amt, nil
 	} else if r.TransactionType == "GENESIS" {
 		if vout == 1 {
-			return amt.Add(amt, big.NewInt(int64(r.Data.(SlpGenesis).Qty))), nil
+			return amt.Add(amt, new(big.Int).SetUint64(r.Data.(SlpGenesis).Qty)), nil
 		}
 		return amt, nil
 	}
@@ -116,12 +116,12 @@ func (r *ParseResult) TotalSlpMsgOutputValue() (*big.Int, error) {
 	total := big.NewInt(0)
 	if r.TransactionType == "SEND" {
 		for _, amt := range r.Data.(SlpSend).Amounts {
-			total.Add(total, big.NewInt(int64(amt)))
+			total.Add(total, new(big.Int).SetUint64(amt))
 		}
 	} else if r.TransactionType == "MINT" {
-		total.Add(total, big.NewInt(int64(r.Data.(SlpMint).Qty)))
+		total.Add(total, new(big.Int).SetUint64(r.Data.(SlpMint).Qty))
 	} else if r.TransactionType == "GENESIS" {
-		total.Add(total, big.NewInt(int64(r.Data.(SlpGenesis).Qty)))
+		total.Add(total, new(big.Int).SetUint64(r.Data.(SlpGenesis).Qty))
 	}
 	return total, nil
 }
