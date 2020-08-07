@@ -2,11 +2,46 @@ package v1parser
 
 import (
 	"encoding/hex"
+	"encoding/json"
 	"fmt"
+	"io/ioutil"
 	"math/big"
+	"net/http"
 	"reflect"
 	"testing"
 )
+
+func TestSlpMessageUnitTests(t *testing.T) {
+	resp, err := http.Get("https://raw.githubusercontent.com/simpleledger/slp-unit-test-data/master/script_tests.json")
+	if err != nil {
+		t.Fatal("cannot download unit tests")
+	}
+	data, err := ioutil.ReadAll(resp.Body)
+	defer resp.Body.Close()
+
+	type TestCase struct {
+		Msg    string
+		Script string
+		Code   *float64
+	}
+	var tests []TestCase
+	err = json.Unmarshal(data, &tests)
+	if err != nil {
+		t.Fatal(err.Error())
+	}
+	for _, test := range tests {
+		slpbuf, _ := hex.DecodeString(test.Script)
+		_, err := ParseSLP(slpbuf)
+		if err != nil {
+			if test.Code != nil {
+				fmt.Println(test.Msg)
+				continue
+			}
+			t.Fatal("goslp parser did not throw an error")
+		}
+		fmt.Println(test.Msg)
+	}
+}
 
 func TestGetOutputAmountSend(t *testing.T) {
 	scriptPubKey, _ := hex.DecodeString("6a04534c500001010453454e4420c4b0d62156b3fa5c8f3436079b5394f7edc1bef5dc1cd2f9d0c4d46f82cca47908000000000000000108000000000000000408000000000000005a")
