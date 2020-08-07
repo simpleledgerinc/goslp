@@ -28,5 +28,20 @@ func TestDecodeAddressMainnet(t *testing.T) {
 	if addr.String() != addrStr {
 		t.Fatal("decode failed")
 	}
+}
 
+func TestCashAddrFailedDecodeAddressMainnet(t *testing.T) {
+	addrStr := "qqqmy7340gd5esk26zvgxmh8fpkq36e32vv6gd69dv"
+	_, err := DecodeAddress(addrStr, &chaincfg.MainNetParams)
+	if err == nil {
+		t.Fatal(err)
+	}
+}
+
+func TestCashAddr2FailedDecodeAddressMainnet(t *testing.T) {
+	addrStr := "bitcoincash:qqqmy7340gd5esk26zvgxmh8fpkq36e32vv6gd69dv"
+	_, err := DecodeAddress(addrStr, &chaincfg.MainNetParams)
+	if err == nil {
+		t.Fatal(err)
+	}
 }
