@@ -1,0 +1,7 @@
+.vscode
+.DS_Store
+node_modules
+corpus
+crashers
+suppressions
+v1parser-fuzz.zip

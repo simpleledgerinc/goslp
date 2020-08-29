@@ -1,0 +1,16 @@
+{
+    "name": "nodejs_validation",
+    "version": "1.0.0",
+    "private": true,
+    "description": "",
+    "main": "server.js",
+    "scripts": {
+        "test": "echo \"Error: no test specified\" && exit 1"
+    },
+    "author": "",
+    "license": "ISC",
+    "dependencies": {
+        "slp-validate": "1.2.2",
+        "turbo-http": "^0.3.2"
+    }
+}

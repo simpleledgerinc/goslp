@@ -3,7 +3,6 @@ package goslp
 import (
 	"bytes"
 	"encoding/hex"
-	"fmt"
 	"testing"
 
 	"github.com/gcash/bchd/chaincfg"
@@ -27,7 +26,6 @@ func TestDecodeAddressMainnet(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	fmt.Println(addr.String())
 	if addr.String() != addrStr {
 		t.Fatal("decode failed")
 	}
