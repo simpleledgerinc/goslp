@@ -247,11 +247,10 @@ func ParseSLP(scriptPubKey []byte) (*ParseResult, error) {
 	chunks := make([][]byte, 0)
 	for _len := extractPushdata(); _len >= 0; _len = extractPushdata() {
 		buf := make([]byte, _len)
-		copy(buf, itObj[it:it+_len])
-
 		if err := parseCheck(it+_len > len(itObj), "pushdata data extraction failed"); err != nil {
 			return nil, err
 		}
+		copy(buf, itObj[it:it+_len])
 
 		it += _len
 		chunks = append(chunks, buf)
