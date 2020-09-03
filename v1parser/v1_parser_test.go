@@ -3,7 +3,6 @@ package v1parser
 import (
 	"encoding/hex"
 	"encoding/json"
-	"fmt"
 	"io/ioutil"
 	"math/big"
 	"os"
@@ -114,7 +113,6 @@ func TestGetOutputAmountGenesisVoutNotNegative(t *testing.T) {
 	scriptPubKey, _ := hex.DecodeString("6a04534c500001010747454e45534953074f6e65436f696e074f6e65436f696e4c5468747470733a2f2f7468656e6578747765622e636f6d2f68617264666f726b2f323031392f31322f32332f6f6e65636f696e2d63727970746f63757272656e63792d7363616d2d6e6565642d746f2d6b6e6f772f4c000104010208ffffffffffffffff")
 	slpMsg, _ := ParseSLP(scriptPubKey)
 	amt, _ := slpMsg.GetVoutAmount(1)
-	fmt.Println(amt.Text(10))
 	if amt.Cmp(big.NewInt(0)) < 1 {
 		t.Error("amount is less than zero")
 	}
@@ -136,7 +134,6 @@ func TestGetTotalOutputAmountSendNotNegative(t *testing.T) {
 	scriptPubKey, _ := hex.DecodeString("6a04534c500001010453454e442044e3d05a07091091a63a4074287a784fcd96c26095682e05c22c4bd4e5bf8681080000000000000001080000000000000001080000000000000001080000000000000001080000000000000001080000000000000001080000000000000001080000000000000001088ac7230489e80000")
 	slpMsg, _ := ParseSLP(scriptPubKey)
 	amt, _ := slpMsg.TotalSlpMsgOutputValue()
-	fmt.Println(amt.Text(10))
 	if amt.Cmp(big.NewInt(0)) < 1 {
 		t.Error("amount is less than zero")
 	}

@@ -6,7 +6,8 @@ import (
 	"github.com/gcash/bchd/chaincfg"
 	"github.com/gcash/bchd/wire"
 	"github.com/gcash/bchutil"
-	"github.com/simpleledgerinc/goslp/v1parser"
+
+	"./v1parser"
 )
 
 // GetSlpVersionType returns the SLP version number regardless of version/type
