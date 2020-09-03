@@ -7,7 +7,7 @@ import (
 	"math/big"
 )
 
-// SlpGenesis is an unmarshalled Genesis OP_RETURN
+// SlpGenesis is an unmarshaled Genesis OP_RETURN
 type SlpGenesis struct {
 	Ticker, Name, DocumentURI, DocumentHash []byte
 	Decimals, MintBatonVout                 int
@@ -34,7 +34,7 @@ func (g *SlpGenesis) DocumentHashAsHex() string {
 	return hex.EncodeToString(g.DocumentHash)
 }
 
-// SlpMint is an unmarshalled Mint OP_RETURN
+// SlpMint is an unmarshaled Mint OP_RETURN
 type SlpMint struct {
 	TokenID       []byte
 	MintBatonVout int
@@ -46,7 +46,7 @@ func (m *SlpMint) TokenIDAsHex() string {
 	return hex.EncodeToString(m.TokenID)
 }
 
-// SlpSend is an unmarshalled Send OP_RETURN
+// SlpSend is an unmarshaled Send OP_RETURN
 type SlpSend struct {
 	TokenID []byte
 	Amounts []uint64
@@ -58,7 +58,7 @@ func (s *SlpSend) TokenIDAsHex() string {
 }
 
 // SlpOpReturn represents a generic interface for
-// any type of unmarshalled SLP OP_RETURN message
+// any type of unmarshaled SLP OP_RETURN message
 type SlpOpReturn interface{}
 
 // ParseResult returns the parsed result.
@@ -122,7 +122,7 @@ func (r *ParseResult) TotalSlpMsgOutputValue() (*big.Int, error) {
 	return total, nil
 }
 
-// ParseSLP unmarshalls an SLP message from a transaction scriptPubKey.
+// ParseSLP unmarshals an SLP message from a transaction scriptPubKey.
 func ParseSLP(scriptPubKey []byte) (*ParseResult, error) {
 	it := 0
 	itObj := scriptPubKey
