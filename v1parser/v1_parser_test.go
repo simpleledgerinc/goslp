@@ -6,18 +6,18 @@ import (
 	"fmt"
 	"io/ioutil"
 	"math/big"
-	"net/http"
+	"os"
 	"reflect"
 	"testing"
 )
 
 func TestSlpMessageUnitTests(t *testing.T) {
-	resp, err := http.Get("https://raw.githubusercontent.com/simpleledger/slp-unit-test-data/master/script_tests.json")
+	inputTestsFile, err := os.Open("v1_parser_test_opreturn.json")
 	if err != nil {
-		t.Fatal("cannot download unit tests")
+		t.Fatal(err.Error())
 	}
-	data, err := ioutil.ReadAll(resp.Body)
-	defer resp.Body.Close()
+	data, err := ioutil.ReadAll(inputTestsFile)
+	defer inputTestsFile.Close()
 
 	type TestCase struct {
 		Msg    string
@@ -29,17 +29,15 @@ func TestSlpMessageUnitTests(t *testing.T) {
 	if err != nil {
 		t.Fatal(err.Error())
 	}
-	for _, test := range tests {
+	for i, test := range tests {
 		slpbuf, _ := hex.DecodeString(test.Script)
 		_, err := ParseSLP(slpbuf)
 		if err != nil {
 			if test.Code != nil {
-				fmt.Println(test.Msg)
 				continue
 			}
-			t.Fatal("goslp parser did not throw an error")
+			t.Errorf("Test %d: did not throw the expected error for '%s'", i, test.Msg)
 		}
-		fmt.Println(test.Msg)
 	}
 }
 
@@ -48,7 +46,7 @@ func TestGetOutputAmountSend(t *testing.T) {
 	slpMsg, _ := ParseSLP(scriptPubKey)
 	amt, _ := slpMsg.GetVoutAmount(3)
 	if amt.Cmp(big.NewInt(90)) != 0 {
-		t.Fatal("incorrect amount parsed for index")
+		t.Error("incorrect amount parsed for index")
 	}
 }
 
@@ -57,10 +55,10 @@ func TestGetOutputAmountSendNotNegative(t *testing.T) {
 	slpMsg, _ := ParseSLP(scriptPubKey)
 	amt, _ := slpMsg.GetVoutAmount(1)
 	if amt.Cmp(big.NewInt(0)) < 1 {
-		t.Fatal("amount is less than zero")
+		t.Error("amount is less than zero")
 	}
 	if amt.Cmp(new(big.Int).SetUint64(18446744073709551615)) != 0 {
-		t.Fatal("amount is incorrect")
+		t.Error("amount is incorrect")
 	}
 }
 
@@ -69,7 +67,7 @@ func TestGetOutputAmountMint(t *testing.T) {
 	slpMsg, _ := ParseSLP(scriptPubKey)
 	amt, _ := slpMsg.GetVoutAmount(1)
 	if amt.Cmp(big.NewInt(200000000)) != 0 {
-		t.Fatal("incorrect amount parsed for index")
+		t.Error("incorrect amount parsed for index")
 	}
 }
 
@@ -78,7 +76,7 @@ func TestGetOutputAmountMintVout2(t *testing.T) {
 	slpMsg, _ := ParseSLP(scriptPubKey)
 	amt, _ := slpMsg.GetVoutAmount(2)
 	if amt.Cmp(big.NewInt(0)) != 0 {
-		t.Fatal("incorrect amount parsed for index")
+		t.Error("incorrect amount parsed for index")
 	}
 }
 
@@ -87,10 +85,10 @@ func TestGetOutputAmountMintVoutNotNegative(t *testing.T) {
 	slpMsg, _ := ParseSLP(scriptPubKey)
 	amt, _ := slpMsg.GetVoutAmount(1)
 	if amt.Cmp(big.NewInt(0)) < 1 {
-		t.Fatal("amount is less than zero")
+		t.Error("amount is less than zero")
 	}
 	if amt.Cmp(new(big.Int).SetUint64(18446744073709551615)) != 0 {
-		t.Fatal("amount is incorrect")
+		t.Error("amount is incorrect")
 	}
 }
 
@@ -99,7 +97,7 @@ func TestGetOutputAmountGenesis(t *testing.T) {
 	slpMsg, _ := ParseSLP(scriptPubKey)
 	amt, _ := slpMsg.GetVoutAmount(1)
 	if amt.Cmp(big.NewInt(420000000000)) != 0 {
-		t.Fatal("incorrect amount parsed for index")
+		t.Error("incorrect amount parsed for index")
 	}
 }
 
@@ -108,7 +106,7 @@ func TestGetOutputAmountGenesisVout2(t *testing.T) {
 	slpMsg, _ := ParseSLP(scriptPubKey)
 	amt, _ := slpMsg.GetVoutAmount(2)
 	if amt.Cmp(big.NewInt(0)) != 0 {
-		t.Fatal("incorrect amount parsed for index")
+		t.Error("incorrect amount parsed for index")
 	}
 }
 
@@ -118,10 +116,10 @@ func TestGetOutputAmountGenesisVoutNotNegative(t *testing.T) {
 	amt, _ := slpMsg.GetVoutAmount(1)
 	fmt.Println(amt.Text(10))
 	if amt.Cmp(big.NewInt(0)) < 1 {
-		t.Fatal("amount is less than zero")
+		t.Error("amount is less than zero")
 	}
 	if amt.Cmp(new(big.Int).SetUint64(18446744073709551615)) != 0 {
-		t.Fatal("amount is incorrect")
+		t.Error("amount is incorrect")
 	}
 }
 
@@ -130,7 +128,7 @@ func TestTotalOutputAmountSend(t *testing.T) {
 	slpMsg, _ := ParseSLP(scriptPubKey)
 	amt, _ := slpMsg.TotalSlpMsgOutputValue()
 	if amt.Cmp(big.NewInt(95)) != 0 {
-		t.Fatal("incorrect total amount from SEND script")
+		t.Error("incorrect total amount from SEND script")
 	}
 }
 
@@ -140,7 +138,7 @@ func TestGetTotalOutputAmountSendNotNegative(t *testing.T) {
 	amt, _ := slpMsg.TotalSlpMsgOutputValue()
 	fmt.Println(amt.Text(10))
 	if amt.Cmp(big.NewInt(0)) < 1 {
-		t.Fatal("amount is less than zero")
+		t.Error("amount is less than zero")
 	}
 }
 
@@ -149,7 +147,7 @@ func TestTotalOutputAmountMint(t *testing.T) {
 	slpMsg, _ := ParseSLP(scriptPubKey)
 	amt, _ := slpMsg.TotalSlpMsgOutputValue()
 	if amt.Cmp(big.NewInt(200000000)) != 0 {
-		t.Fatal("incorrect total amount from script")
+		t.Error("incorrect total amount from script")
 	}
 }
 
@@ -158,7 +156,7 @@ func TestTotalOutputAmountGenesis(t *testing.T) {
 	slpMsg, _ := ParseSLP(scriptPubKey)
 	amt, _ := slpMsg.TotalSlpMsgOutputValue()
 	if amt.Cmp(big.NewInt(420000000000)) != 0 {
-		t.Fatal("incorrect total amount from script")
+		t.Error("incorrect total amount from script")
 	}
 }
 
@@ -169,10 +167,10 @@ func TestGenesisParseSlp(t *testing.T) {
 		t.Fatal(err.Error())
 	}
 	if slpMsg.Data.(SlpGenesis).Qty != 18446744073709551615 {
-		t.Fatal("incorrect mint qty")
+		t.Error("incorrect mint qty")
 	}
 	if slpMsg.TransactionType != "GENESIS" {
-		t.Fatal("not genesis")
+		t.Error("not genesis")
 	}
 }
 
@@ -183,14 +181,14 @@ func TestSendParseSlp(t *testing.T) {
 		t.Fatal(err.Error())
 	}
 	if slpMsg.TransactionType != "SEND" {
-		t.Fatal("not send")
+		t.Error("not send")
 	}
 	if slpMsg.Data.(SlpSend).Amounts[0] != 6000000000 {
-		t.Fatal("incorrect send qty")
+		t.Error("incorrect send qty")
 	}
 	tokenID, err := hex.DecodeString("d6876f0fce603be43f15d34348bb1de1a8d688e1152596543da033a060cff798")
 	if !reflect.DeepEqual(slpMsg.Data.(SlpSend).TokenID, tokenID) {
-		t.Fatal("incorrect tokenID")
+		t.Error("incorrect tokenID")
 	}
 }
 
@@ -201,13 +199,13 @@ func TestMintParseSlp(t *testing.T) {
 		t.Fatal(err.Error())
 	}
 	if slpMsg.TransactionType != "MINT" {
-		t.Fatal("not mint")
+		t.Error("not mint")
 	}
 	if slpMsg.Data.(SlpMint).Qty != 400000000 {
-		t.Fatal("incorrect mint qty")
+		t.Error("incorrect mint qty")
 	}
 	tokenID, err := hex.DecodeString("d6876f0fce603be43f15d34348bb1de1a8d688e1152596543da033a060cff798")
 	if !reflect.DeepEqual(slpMsg.Data.(SlpMint).TokenID, tokenID) {
-		t.Fatal("incorrect tokenID")
+		t.Error("incorrect tokenID")
 	}
 }
