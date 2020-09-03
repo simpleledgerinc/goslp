@@ -56,8 +56,8 @@ func GetSlpTokenID(tx *wire.MsgTx) ([]byte, error) {
 }
 
 // ConvertSlpToCashAddress converts an slp formatted address to cash formatted address
-func ConvertSlpToCashAddress(addr Address, params *chaincfg.Params) *bchutil.Address {
-	var bchAddr *bchutil.Address
+func ConvertSlpToCashAddress(addr Address, params *chaincfg.Params) bchutil.Address {
+	var bchAddr bchutil.Address
 	switch a := addr.(type) {
 	case *AddressPubKeyHash:
 		hash := a.Hash160()
