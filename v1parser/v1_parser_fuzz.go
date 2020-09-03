@@ -11,7 +11,7 @@ import (
 type jsData struct {
 	symbol                string
 	name                  string
-	documentUri           string
+	documentURI           string
 	documentSha256        string
 	decimals              int
 	genesisOrMintQuantity string
@@ -34,7 +34,7 @@ func Fuzz(data []byte) int {
 	// get JS parser result
 	resp, err := http.Get("http://localhost:8077/" + hex.EncodeToString(data))
 	if err != nil {
-		print(err)
+		panic(err)
 	}
 	defer resp.Body.Close()
 
@@ -61,7 +61,7 @@ func Fuzz(data []byte) int {
 		if j.data.transactionType != "GENESIS" {
 			panic("transaction type does not match")
 		}
-		if string(_type.DocumentURI) != j.data.documentUri {
+		if string(_type.DocumentURI) != j.data.documentURI {
 			panic("document uri string does not match")
 		}
 		if hex.EncodeToString(_type.DocumentHash) != j.data.documentSha256 {

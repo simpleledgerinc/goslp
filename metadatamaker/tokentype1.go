@@ -1,10 +1,11 @@
 package metadatamaker
 
+// TokenType1Genesis creates serialized Genesis op_return
 func TokenType1Genesis(
 	versionType int,
 	ticker []byte,
 	name []byte,
-	documentUrl []byte,
+	documentURL []byte,
 	documentHash []byte,
 	decimals int,
 	mintBatonVout *MintBatonVout,
@@ -14,7 +15,7 @@ func TokenType1Genesis(
 		0x01,
 		ticker,
 		name,
-		documentUrl,
+		documentURL,
 		documentHash,
 		decimals,
 		mintBatonVout,
@@ -22,10 +23,17 @@ func TokenType1Genesis(
 	)
 }
 
-func TokenType1Mint(tokenIdHex []byte, mintBatonVout *MintBatonVout, quantity uint64) ([]byte, error) {
-	return CreateOpReturnMint(0x01, tokenIdHex, mintBatonVout, quantity)
+// TokenType1Mint creates serialized Mint op_return
+func TokenType1Mint(
+	tokenIDHex []byte,
+	mintBatonVout *MintBatonVout,
+	quantity uint64) ([]byte, error) {
+	return CreateOpReturnMint(0x01, tokenIDHex, mintBatonVout, quantity)
 }
 
-func TokenType1Send(tokenIdHex []byte, slpAmounts []uint64) ([]byte, error) {
-	return CreateOpReturnSend(0x01, tokenIdHex, slpAmounts)
+// TokenType1Send creates serialized Send op_return
+func TokenType1Send(
+	tokenIDHex []byte,
+	slpAmounts []uint64) ([]byte, error) {
+	return CreateOpReturnSend(0x01, tokenIDHex, slpAmounts)
 }

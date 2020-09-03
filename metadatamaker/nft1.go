@@ -1,10 +1,11 @@
 package metadatamaker
 
+// NFT1GroupGenesis creates serialized NFT Group genesis op_return message
 func NFT1GroupGenesis(
 	versionType int,
 	ticker []byte,
 	name []byte,
-	documentUrl []byte,
+	documentURL []byte,
 	documentHash []byte,
 	decimals int,
 	mintBatonVout *MintBatonVout,
@@ -14,7 +15,7 @@ func NFT1GroupGenesis(
 		0x81,
 		ticker,
 		name,
-		documentUrl,
+		documentURL,
 		documentHash,
 		decimals,
 		mintBatonVout,
@@ -22,19 +23,27 @@ func NFT1GroupGenesis(
 	)
 }
 
-func NFT1GroupMint(tokenIdHex []byte, mintBatonVout *MintBatonVout, quantity uint64) ([]byte, error) {
-	return CreateOpReturnMint(0x81, tokenIdHex, mintBatonVout, quantity)
+// NFT1GroupMint creates serialized Mint op_return message
+func NFT1GroupMint(
+	tokenIDHex []byte,
+	mintBatonVout *MintBatonVout,
+	quantity uint64) ([]byte, error) {
+	return CreateOpReturnMint(0x81, tokenIDHex, mintBatonVout, quantity)
 }
 
-func NFT1GroupSend(tokenIdHex []byte, slpAmounts []uint64) ([]byte, error) {
-	return CreateOpReturnSend(0x81, tokenIdHex, slpAmounts)
+// NFT1GroupSend creates serialized Send op_return message
+func NFT1GroupSend(
+	tokenIDHex []byte,
+	slpAmounts []uint64) ([]byte, error) {
+	return CreateOpReturnSend(0x81, tokenIDHex, slpAmounts)
 }
 
+// NFT1ChildGenesis creates serialized NFT Genesis op_return message
 func NFT1ChildGenesis(
 	versionType int,
 	ticker []byte,
 	name []byte,
-	documentUrl []byte,
+	documentURL []byte,
 	documentHash []byte,
 	decimals int,
 	mintBatonVout *MintBatonVout,
@@ -44,7 +53,7 @@ func NFT1ChildGenesis(
 		0x41,
 		ticker,
 		name,
-		documentUrl,
+		documentURL,
 		documentHash,
 		decimals,
 		mintBatonVout,
@@ -52,6 +61,9 @@ func NFT1ChildGenesis(
 	)
 }
 
-func NFT1ChildSend(tokenIdHex []byte, slpAmounts []uint64) ([]byte, error) {
-	return CreateOpReturnSend(0x41, tokenIdHex, slpAmounts)
+// NFT1ChildSend creates serialized Send op_return message
+func NFT1ChildSend(
+	tokenIDHex []byte,
+	slpAmounts []uint64) ([]byte, error) {
+	return CreateOpReturnSend(0x41, tokenIDHex, slpAmounts)
 }

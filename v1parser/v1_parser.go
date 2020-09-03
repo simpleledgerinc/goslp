@@ -59,11 +59,7 @@ func (s *SlpSend) TokenIDAsHex() string {
 
 // SlpOpReturn represents a generic interface for
 // any type of unmarshalled SLP OP_RETURN message
-type SlpOpReturn interface {
-	// TODO: once tests are added may need to add ToMap to simplify
-	//		 interaction with the SLP unit tests
-	//ToMap(raw bool) map[string]string
-}
+type SlpOpReturn interface{}
 
 // ParseResult returns the parsed result.
 type ParseResult struct {
@@ -166,13 +162,10 @@ func ParseSLP(scriptPubKey []byte) (*ParseResult, error) {
 	}
 
 	extractU64 := func(littleEndian bool) int {
-		var r uint64
 		if littleEndian {
-			r = binary.LittleEndian.Uint64(itObj[it : it+8])
-		} else {
-			r = binary.BigEndian.Uint64(itObj[it : it+8])
+			return int(binary.LittleEndian.Uint64(itObj[it : it+8]))
 		}
-		return int(r)
+		return int(binary.BigEndian.Uint64(itObj[it : it+8]))
 	}
 
 	if err := parseCheck(len(itObj) == 0, "scriptpubkey cannot be empty"); err != nil {

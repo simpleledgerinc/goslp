@@ -6,7 +6,7 @@ import (
 	"errors"
 )
 
-// mostly used as optional container
+// MintBatonVout mostly used as optional container
 type MintBatonVout struct {
 	vout int
 }
@@ -19,17 +19,17 @@ func pushdata(buf []byte) []byte {
 	if bufLen == 0 {
 		return []byte{0x4C, 0x00}
 	} else if bufLen < 0x4E {
-		return bytes.Join([][]byte{[]byte{uint8(bufLen)}, buf}, []byte{})
+		return bytes.Join([][]byte{{uint8(bufLen)}, buf}, []byte{})
 	} else if bufLen < 0xFF {
-		return bytes.Join([][]byte{[]byte{0x4C, uint8(bufLen)}, buf}, []byte{})
+		return bytes.Join([][]byte{{0x4C, uint8(bufLen)}, buf}, []byte{})
 	} else if bufLen < 0xFFFF {
 		tmp := make([]byte, 2)
 		binary.LittleEndian.PutUint16(tmp, uint16(bufLen))
-		return bytes.Join([][]byte{[]byte{0x4D}, tmp, buf}, []byte{})
+		return bytes.Join([][]byte{{0x4D}, tmp, buf}, []byte{})
 	} else if bufLen < 0xFFFFFFFF {
 		tmp := make([]byte, 4)
 		binary.LittleEndian.PutUint32(tmp, uint32(bufLen))
-		return bytes.Join([][]byte{[]byte{0x4E}, tmp, buf}, []byte{})
+		return bytes.Join([][]byte{{0x4E}, tmp, buf}, []byte{})
 	} else {
 		panic("pushdata cannot support more than 0xFFFFFFFF elements")
 	}
@@ -42,11 +42,12 @@ func makeU64BigEndianBytes(v uint64) []byte {
 	return tmp
 }
 
+// CreateOpReturnGenesis creates serialized Genesis op_return message
 func CreateOpReturnGenesis(
 	versionType int,
 	ticker []byte,
 	name []byte,
-	documentUrl []byte,
+	documentURL []byte,
 	documentHash []byte,
 	decimals int,
 	mintBatonVout *MintBatonVout,
@@ -92,7 +93,7 @@ func CreateOpReturnGenesis(
 		pushdata([]byte("GENESIS")),
 		pushdata(ticker),
 		pushdata(name),
-		pushdata(documentUrl),
+		pushdata(documentURL),
 		pushdata(documentHash),
 		pushdata([]byte{uint8(decimals)}),
 		pushdata(mintBatonVoutBytes),
@@ -102,12 +103,17 @@ func CreateOpReturnGenesis(
 	return buf, nil
 }
 
-func CreateOpReturnMint(versionType int, tokenIdHex []byte, mintBatonVout *MintBatonVout, quantity uint64) ([]byte, error) {
+// CreateOpReturnMint creates serialized Mint op_return message
+func CreateOpReturnMint(
+	versionType int,
+	tokenIDHex []byte,
+	mintBatonVout *MintBatonVout,
+	quantity uint64) ([]byte, error) {
 	if versionType != 0x01 && versionType != 0x41 && versionType != 0x81 {
 		return nil, errors.New("unknown versionType")
 	}
 
-	if len(tokenIdHex) != 32 {
+	if len(tokenIDHex) != 32 {
 		return nil, errors.New("tokenIdHex must be 32 bytes")
 	}
 
@@ -120,11 +126,11 @@ func CreateOpReturnMint(versionType int, tokenIdHex []byte, mintBatonVout *MintB
 	}
 
 	buf := bytes.Join([][]byte{
-		[]byte{0x6A}, // OP_RETURN
+		{0x6A}, // OP_RETURN
 		pushdata([]byte("SLP\x00")),
 		pushdata([]byte{uint8(versionType)}),
 		pushdata([]byte("MINT")),
-		pushdata(tokenIdHex),
+		pushdata(tokenIDHex),
 		pushdata(mintBatonVoutBytes),
 		pushdata(makeU64BigEndianBytes(quantity)),
 	}, []byte{})
@@ -132,12 +138,16 @@ func CreateOpReturnMint(versionType int, tokenIdHex []byte, mintBatonVout *MintB
 	return buf, nil
 }
 
-func CreateOpReturnSend(versionType int, tokenIdHex []byte, slpAmounts []uint64) ([]byte, error) {
+// CreateOpReturnSend create serialized Send op_return message
+func CreateOpReturnSend(
+	versionType int,
+	tokenIDHex []byte,
+	slpAmounts []uint64) ([]byte, error) {
 	if versionType != 0x01 && versionType != 0x41 && versionType != 0x81 {
 		return nil, errors.New("unknown versionType")
 	}
 
-	if len(tokenIdHex) != 32 {
+	if len(tokenIDHex) != 32 {
 		return nil, errors.New("tokenIdHex must be 32 bytes")
 	}
 
@@ -155,11 +165,11 @@ func CreateOpReturnSend(versionType int, tokenIdHex []byte, slpAmounts []uint64)
 	}
 
 	buf := bytes.Join([][]byte{
-		[]byte{0x6A}, // OP_RETURN
+		{0x6A}, // OP_RETURN
 		pushdata([]byte("SLP\x00")),
 		pushdata([]byte{uint8(versionType)}),
 		pushdata([]byte("SEND")),
-		pushdata(tokenIdHex),
+		pushdata(tokenIDHex),
 		bytes.Join(amountPushdatas, []byte{}),
 	}, []byte{})
 
