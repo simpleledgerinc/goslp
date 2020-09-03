@@ -2,7 +2,6 @@ package metadatamaker
 
 // TokenType1Genesis creates serialized Genesis op_return
 func TokenType1Genesis(
-	versionType int,
 	ticker []byte,
 	name []byte,
 	documentURL []byte,

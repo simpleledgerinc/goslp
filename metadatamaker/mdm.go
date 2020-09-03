@@ -6,40 +6,9 @@ import (
 	"errors"
 )
 
-// MintBatonVout mostly used as optional container
+// MintBatonVout used so that vout value can be set as nil
 type MintBatonVout struct {
 	vout int
-}
-
-// https://golang.org/ref/spec#Slice_types
-// max len is int-1 which is size of the default integer on target build
-func pushdata(buf []byte) []byte {
-	bufLen := len(buf)
-
-	if bufLen == 0 {
-		return []byte{0x4C, 0x00}
-	} else if bufLen < 0x4E {
-		return bytes.Join([][]byte{{uint8(bufLen)}, buf}, []byte{})
-	} else if bufLen < 0xFF {
-		return bytes.Join([][]byte{{0x4C, uint8(bufLen)}, buf}, []byte{})
-	} else if bufLen < 0xFFFF {
-		tmp := make([]byte, 2)
-		binary.LittleEndian.PutUint16(tmp, uint16(bufLen))
-		return bytes.Join([][]byte{{0x4D}, tmp, buf}, []byte{})
-	} else if bufLen < 0xFFFFFFFF {
-		tmp := make([]byte, 4)
-		binary.LittleEndian.PutUint32(tmp, uint32(bufLen))
-		return bytes.Join([][]byte{{0x4E}, tmp, buf}, []byte{})
-	} else {
-		panic("pushdata cannot support more than 0xFFFFFFFF elements")
-	}
-}
-
-// TODO we can use better name for this
-func makeU64BigEndianBytes(v uint64) []byte {
-	tmp := make([]byte, 8)
-	binary.BigEndian.PutUint64(tmp, v)
-	return tmp
 }
 
 // CreateOpReturnGenesis creates serialized Genesis op_return message
@@ -174,4 +143,35 @@ func CreateOpReturnSend(
 	}, []byte{})
 
 	return buf, nil
+}
+
+// https://golang.org/ref/spec#Slice_types
+// max len is int-1 which is size of the default integer on target build
+func pushdata(buf []byte) []byte {
+	bufLen := len(buf)
+
+	if bufLen == 0 {
+		return []byte{0x4C, 0x00}
+	} else if bufLen < 0x4E {
+		return bytes.Join([][]byte{{uint8(bufLen)}, buf}, []byte{})
+	} else if bufLen < 0xFF {
+		return bytes.Join([][]byte{{0x4C, uint8(bufLen)}, buf}, []byte{})
+	} else if bufLen < 0xFFFF {
+		tmp := make([]byte, 2)
+		binary.LittleEndian.PutUint16(tmp, uint16(bufLen))
+		return bytes.Join([][]byte{{0x4D}, tmp, buf}, []byte{})
+	} else if bufLen < 0xFFFFFFFF {
+		tmp := make([]byte, 4)
+		binary.LittleEndian.PutUint32(tmp, uint32(bufLen))
+		return bytes.Join([][]byte{{0x4E}, tmp, buf}, []byte{})
+	} else {
+		panic("pushdata cannot support more than 0xFFFFFFFF elements")
+	}
+}
+
+// TODO we can use better name for this
+func makeU64BigEndianBytes(v uint64) []byte {
+	tmp := make([]byte, 8)
+	binary.BigEndian.PutUint64(tmp, v)
+	return tmp
 }

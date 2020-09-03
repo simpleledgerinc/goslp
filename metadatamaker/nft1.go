@@ -2,7 +2,6 @@ package metadatamaker
 
 // NFT1GroupGenesis creates serialized NFT Group genesis op_return message
 func NFT1GroupGenesis(
-	versionType int,
 	ticker []byte,
 	name []byte,
 	documentURL []byte,
@@ -40,13 +39,11 @@ func NFT1GroupSend(
 
 // NFT1ChildGenesis creates serialized NFT Genesis op_return message
 func NFT1ChildGenesis(
-	versionType int,
 	ticker []byte,
 	name []byte,
 	documentURL []byte,
 	documentHash []byte,
 	decimals int,
-	mintBatonVout *MintBatonVout,
 	quantity uint64,
 ) ([]byte, error) {
 	return CreateOpReturnGenesis(
@@ -56,7 +53,7 @@ func NFT1ChildGenesis(
 		documentURL,
 		documentHash,
 		decimals,
-		mintBatonVout,
+		nil,
 		quantity,
 	)
 }
