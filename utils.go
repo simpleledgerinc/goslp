@@ -3,7 +3,9 @@ package goslp
 import (
 	"errors"
 
+	"github.com/gcash/bchd/chaincfg"
 	"github.com/gcash/bchd/wire"
+	"github.com/gcash/bchutil"
 	"github.com/simpleledgerinc/goslp/v1parser"
 )
 
@@ -51,6 +53,20 @@ func GetSlpTokenID(tx *wire.MsgTx) ([]byte, error) {
 	} else {
 		panic("unknown error has occured")
 	}
+}
+
+// ConvertSlpToCashAddress converts an slp formatted address to cash formatted address
+func ConvertSlpToCashAddress(addr Address, params *chaincfg.Params) *bchutil.Address {
+	var bchAddr *bchutil.Address
+	switch a := addr.(type) {
+	case *AddressPubKeyHash:
+		hash := a.Hash160()
+		bchAddr, _ = bchutil.NewAddressPubKeyHash(hash[:], params)
+	case *AddressScriptHash:
+		hash := a.Hash160()
+		bchAddr, _ = bchutil.NewAddressScriptHash(hash[:], params)
+	}
+	return bchAddr
 }
 
 func contains(s []int, e int) bool {
