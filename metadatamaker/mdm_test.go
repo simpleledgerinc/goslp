@@ -3,7 +3,7 @@ package metadatamaker
 import (
 	"testing"
 
-	"../v1parser"
+	"github.com/simpleledgerinc/goslp/v1parser"
 )
 
 func TestCreateOpReturnGenesis(t *testing.T) {

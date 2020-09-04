@@ -3,7 +3,7 @@ package metadatamaker
 import (
 	"testing"
 
-	"../v1parser"
+	"github.com/simpleledgerinc/goslp/v1parser"
 )
 
 func TestNft1ChildCreateOpReturnGenesis(t *testing.T) {
