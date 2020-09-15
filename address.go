@@ -69,13 +69,13 @@ type Address interface {
 	IsForNet(*chaincfg.Params) bool
 }
 
-// DecodeAddress decodes the string encoding of an address and returns
+// decodeAddress decodes the string encoding of an address and returns
 // the Address if addr is a valid encoding for a known address type.
 //
 // The bitcoin network the address is associated with is extracted if possible.
 // When the address does not encode the network, such as in the case of a raw
 // public key, the address will be associated with the passed defaultNet.
-func DecodeAddress(addr string, defaultNet *chaincfg.Params) (Address, error) {
+func decodeAddress(addr string, defaultNet *chaincfg.Params) (Address, error) {
 	pre := defaultNet.SlpAddressPrefix
 	if len(addr) < len(pre)+2 {
 		return nil, errors.New("invalid length address")
@@ -148,6 +148,22 @@ func DecodeAddress(addr string, defaultNet *chaincfg.Params) (Address, error) {
 	default:
 		return nil, errors.New("decoded address is of unknown size")
 	}
+}
+
+// DecodeAddress decodes the string encoding of an address and returns
+// the Address if addr is a valid encoding for a known address type.  The
+// address string can be encoded with cashAddr or slpAddr format.
+//
+// The bitcoin network the address is associated with is extracted if possible.
+// When the address does not encode the network, such as in the case of a raw
+// public key, the address will be associated with the passed defaultNet.
+func DecodeAddress(addr string, defaultNet *chaincfg.Params) (Address, error) {
+	address, err := bchutil.DecodeAddress(addr, defaultNet)
+	if err != nil {
+		address, err = decodeAddress(addr, defaultNet)
+		address, err = ConvertSlpToCashAddress(address, defaultNet)
+	}
+	return address, err
 }
 
 // encodeLegacyAddress returns a human-readable payment address given a ripemd160 hash
