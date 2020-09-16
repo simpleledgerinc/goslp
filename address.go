@@ -151,17 +151,23 @@ func decodeAddress(addr string, defaultNet *chaincfg.Params) (Address, error) {
 }
 
 // DecodeAddress decodes the string encoding of an address and returns
-// the Address if addr is a valid encoding for a known address type.  The
-// address string can be encoded with cashAddr or slpAddr format.
+// the Address if addr is a valid encoding for a known address type.
+//
+// The result Address type is either bchutil or goslp depending on the value
+// of the forceBchutilType parameter.
 //
 // The bitcoin network the address is associated with is extracted if possible.
 // When the address does not encode the network, such as in the case of a raw
 // public key, the address will be associated with the passed defaultNet.
-func DecodeAddress(addr string, defaultNet *chaincfg.Params) (Address, error) {
+func DecodeAddress(addr string, defaultNet *chaincfg.Params, returnBchutilType bool) (Address, error) {
 	address, err := bchutil.DecodeAddress(addr, defaultNet)
 	if err != nil {
 		address, err = decodeAddress(addr, defaultNet)
-		address, err = ConvertSlpToCashAddress(address, defaultNet)
+		if returnBchutilType == true {
+			address, err = ConvertSlpToCashAddress(address, defaultNet)
+		}
+	} else if returnBchutilType == false {
+		address, err = ConvertCashToSlpAddress(address, defaultNet)
 	}
 	return address, err
 }

@@ -81,6 +81,31 @@ func ConvertSlpToCashAddress(addr Address, params *chaincfg.Params) (bchutil.Add
 	return bchAddr, nil
 }
 
+// ConvertCashToSlpAddress converts a cash formatted address to slp formatted address
+func ConvertCashToSlpAddress(addr Address, params *chaincfg.Params) (bchutil.Address, error) {
+	var (
+		bchAddr bchutil.Address
+		err     error
+	)
+	switch a := addr.(type) {
+	case *bchutil.AddressPubKeyHash:
+		hash := a.Hash160()
+		bchAddr, err = NewAddressPubKeyHash(hash[:], params)
+		if err != nil {
+			return nil, err
+		}
+	case *bchutil.AddressScriptHash:
+		hash := a.Hash160()
+		bchAddr, err = NewAddressScriptHash(hash[:], params)
+		if err != nil {
+			return nil, err
+		}
+	default:
+		return nil, errors.New("address being converted must be type bchutil.AddressPubKeyHash or bchutil.AddressScriptHash")
+	}
+	return bchAddr, nil
+}
+
 func contains(s []int, e int) bool {
 	for _, a := range s {
 		if a == e {
