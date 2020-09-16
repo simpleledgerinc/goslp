@@ -7,6 +7,21 @@ import (
 	"math/big"
 )
 
+const (
+	// TokenTypeFungible01 version type used for ParseResult.TokenType
+	TokenTypeFungible01 int = 0x01
+	// TokenTypeNft1Child41 version type used for ParseResult.TokenType
+	TokenTypeNft1Child41 int = 0x41
+	// TokenTypeNft1Group81 version type used for ParseResult.TokenType
+	TokenTypeNft1Group81 int = 0x81
+	// TransactionTypeGenesis transaction type used for ParseResult.TransactionType
+	TransactionTypeGenesis string = "GENESIS"
+	// TransactionTypeMint transaction type used for ParseResult.TransactionType
+	TransactionTypeMint string = "MINT"
+	// TransactionTypeSend transaction type used for ParseResult.TransactionType
+	TransactionTypeSend string = "SEND"
+)
+
 // SlpGenesis is an unmarshaled Genesis OP_RETURN
 type SlpGenesis struct {
 	Ticker, Name, DocumentURI, DocumentHash []byte
@@ -72,9 +87,9 @@ type ParseResult struct {
 func (r *ParseResult) GetVoutAmount(vout int) (*big.Int, error) {
 	amt := big.NewInt(0)
 
-	if !(r.TokenType == 0x01 ||
-		r.TokenType == 0x41 ||
-		r.TokenType == 0x81) {
+	if !(r.TokenType == TokenTypeFungible01 ||
+		r.TokenType == TokenTypeNft1Child41 ||
+		r.TokenType == TokenTypeNft1Group81) {
 		return nil, errors.New("cannot extract amount for not type 1 or NFT1 token")
 	}
 
@@ -82,17 +97,17 @@ func (r *ParseResult) GetVoutAmount(vout int) (*big.Int, error) {
 		return amt, nil
 	}
 
-	if r.TransactionType == "SEND" {
+	if r.TransactionType == TransactionTypeSend {
 		if vout > len(r.Data.(SlpSend).Amounts) {
 			return amt, nil
 		}
 		return amt.Add(amt, new(big.Int).SetUint64(r.Data.(SlpSend).Amounts[vout-1])), nil
-	} else if r.TransactionType == "MINT" {
+	} else if r.TransactionType == TransactionTypeMint {
 		if vout == 1 {
 			return amt.Add(amt, new(big.Int).SetUint64(r.Data.(SlpMint).Qty)), nil
 		}
 		return amt, nil
-	} else if r.TransactionType == "GENESIS" {
+	} else if r.TransactionType == TransactionTypeGenesis {
 		if vout == 1 {
 			return amt.Add(amt, new(big.Int).SetUint64(r.Data.(SlpGenesis).Qty)), nil
 		}
@@ -103,20 +118,20 @@ func (r *ParseResult) GetVoutAmount(vout int) (*big.Int, error) {
 
 // TotalSlpMsgOutputValue computes the output amount transfered in a transaction
 func (r *ParseResult) TotalSlpMsgOutputValue() (*big.Int, error) {
-	if !(r.TokenType == 0x01 ||
-		r.TokenType == 0x41 ||
-		r.TokenType == 0x81) {
+	if !(r.TokenType == TokenTypeFungible01 ||
+		r.TokenType == TokenTypeNft1Child41 ||
+		r.TokenType == TokenTypeNft1Group81) {
 		return nil, errors.New("cannot compute total output transfer value for unsupported token type")
 	}
 
 	total := big.NewInt(0)
-	if r.TransactionType == "SEND" {
+	if r.TransactionType == TransactionTypeSend {
 		for _, amt := range r.Data.(SlpSend).Amounts {
 			total.Add(total, new(big.Int).SetUint64(amt))
 		}
-	} else if r.TransactionType == "MINT" {
+	} else if r.TransactionType == TransactionTypeMint {
 		total.Add(total, new(big.Int).SetUint64(r.Data.(SlpMint).Qty))
-	} else if r.TransactionType == "GENESIS" {
+	} else if r.TransactionType == TransactionTypeGenesis {
 		total.Add(total, new(big.Int).SetUint64(r.Data.(SlpGenesis).Qty))
 	}
 	return total, nil
@@ -127,11 +142,13 @@ func ParseSLP(scriptPubKey []byte) (*ParseResult, error) {
 	it := 0
 	itObj := scriptPubKey
 
-	const OP_0 int = 0x00
-	const OP_RETURN int = 0x6a
-	const OP_PUSHDATA1 int = 0x4c
-	const OP_PUSHDATA2 int = 0x4d
-	const OP_PUSHDATA4 int = 0x4e
+	const (
+		OP_0         int = 0x00
+		OP_RETURN    int = 0x6a
+		OP_PUSHDATA1 int = 0x4c
+		OP_PUSHDATA2 int = 0x4d
+		OP_PUSHDATA4 int = 0x4e
+	)
 
 	extractU8 := func() int {
 		r := uint8(itObj[it : it+1][0])
@@ -305,9 +322,9 @@ func ParseSLP(scriptPubKey []byte) (*ParseResult, error) {
 		return nil, err
 	}
 
-	if err := parseCheck(tokenType != 0x01 &&
-		tokenType != 0x41 &&
-		tokenType != 0x81,
+	if err := parseCheck(tokenType != TokenTypeFungible01 &&
+		tokenType != TokenTypeNft1Child41 &&
+		tokenType != TokenTypeNft1Group81,
 		"token_type not token-type1, nft1-group, or nft1-child"); err != nil {
 		return nil, err
 	}
@@ -317,7 +334,7 @@ func ParseSLP(scriptPubKey []byte) (*ParseResult, error) {
 	}
 
 	transactionType := string(itObj)
-	if transactionType == "GENESIS" {
+	if transactionType == TransactionTypeGenesis {
 
 		if err := parseCheck(len(chunks) != 10, "wrong number of chunks"); err != nil {
 			return nil, err
@@ -431,7 +448,7 @@ func ParseSLP(scriptPubKey []byte) (*ParseResult, error) {
 				Qty:           uint64(qty),
 			},
 		}, nil
-	} else if transactionType == "MINT" {
+	} else if transactionType == TransactionTypeMint {
 
 		if err := parseCheck(tokenType == 0x41, "NFT1 Child cannot have MINT transaction type."); err != nil {
 			return nil, err
@@ -497,7 +514,7 @@ func ParseSLP(scriptPubKey []byte) (*ParseResult, error) {
 				Qty:           uint64(qty),
 			},
 		}, nil
-	} else if transactionType == "SEND" {
+	} else if transactionType == TransactionTypeSend {
 
 		if err := parseCheck(len(chunks) < 4, "wrong number of chunks"); err != nil {
 			return nil, err
