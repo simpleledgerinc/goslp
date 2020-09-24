@@ -267,7 +267,7 @@ func ParseSLP(scriptPubKey []byte) (*ParseResult, error) {
 		if len(chunks) == 1 {
 			bchMetaTag := chunks[0]
 
-			if err := parseCheck(len(bchMetaTag) != 4, "lokad id wrong size"); err != nil {
+			if err := parseCheck(len(bchMetaTag) != 4, "OP_RETURN magic is wrong size"); err != nil {
 				return nil, err
 			}
 
@@ -275,7 +275,7 @@ func ParseSLP(scriptPubKey []byte) (*ParseResult, error) {
 				bchMetaTag[0] != 0x53 ||
 					bchMetaTag[1] != 0x4c ||
 					bchMetaTag[2] != 0x50 ||
-					bchMetaTag[3] != 0x00, "SLP not in first chunk",
+					bchMetaTag[3] != 0x00, "OP_RETURN magic is not in first chunk",
 			); err != nil {
 				return nil, err
 			}
