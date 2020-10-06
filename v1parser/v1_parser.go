@@ -22,7 +22,7 @@ const (
 	TransactionTypeSend string = "SEND"
 )
 
-// SlpGenesis is an unmarshaled Genesis OP_RETURN
+// SlpGenesis is an unmarshalled Genesis OP_RETURN
 type SlpGenesis struct {
 	Ticker, Name, DocumentURI, DocumentHash []byte
 	Decimals, MintBatonVout                 int
@@ -44,36 +44,36 @@ func (g *SlpGenesis) DocumentURIAsUtf8() string {
 	return string(g.DocumentURI)
 }
 
-// DocumentHashAsHex converts documentHash field bytes to string using hexidecimal encoding
+// DocumentHashAsHex converts documentHash field bytes to string using hexadecimal encoding
 func (g *SlpGenesis) DocumentHashAsHex() string {
 	return hex.EncodeToString(g.DocumentHash)
 }
 
-// SlpMint is an unmarshaled Mint OP_RETURN
+// SlpMint is an unmarshalled Mint OP_RETURN
 type SlpMint struct {
 	TokenID       []byte
 	MintBatonVout int
 	Qty           uint64
 }
 
-// TokenIDAsHex converts TokenId field bytes to string using hexidecimal encoding
+// TokenIDAsHex converts TokenId field bytes to string using hexadecimal encoding
 func (m *SlpMint) TokenIDAsHex() string {
 	return hex.EncodeToString(m.TokenID)
 }
 
-// SlpSend is an unmarshaled Send OP_RETURN
+// SlpSend is an unmarshalled Send OP_RETURN
 type SlpSend struct {
 	TokenID []byte
 	Amounts []uint64
 }
 
-// TokenIDAsHex converts TokenId field bytes to string using hexidecimal encoding
+// TokenIDAsHex converts TokenId field bytes to string using hexadecimal encoding
 func (s *SlpSend) TokenIDAsHex() string {
 	return hex.EncodeToString(s.TokenID)
 }
 
 // SlpOpReturn represents a generic interface for
-// any type of unmarshaled SLP OP_RETURN message
+// any type of unmarshalled SLP OP_RETURN message
 type SlpOpReturn interface{}
 
 // ParseResult returns the parsed result.
@@ -116,7 +116,7 @@ func (r *ParseResult) GetVoutAmount(vout int) (*big.Int, error) {
 	return nil, errors.New("unknown error getting vout amount")
 }
 
-// TotalSlpMsgOutputValue computes the output amount transfered in a transaction
+// TotalSlpMsgOutputValue computes the output amount transferred in a transaction
 func (r *ParseResult) TotalSlpMsgOutputValue() (*big.Int, error) {
 	if !(r.TokenType == TokenTypeFungible01 ||
 		r.TokenType == TokenTypeNft1Child41 ||
@@ -380,7 +380,7 @@ func ParseSLP(scriptPubKey []byte) (*ParseResult, error) {
 			return nil, err
 		}
 
-		if err := parseCheck(decimals > 9, "decimals biger than 9"); err != nil {
+		if err := parseCheck(decimals > 9, "decimals bigger than 9"); err != nil {
 			return nil, err
 		}
 
@@ -494,9 +494,9 @@ func ParseSLP(scriptPubKey []byte) (*ParseResult, error) {
 			return nil, err
 		}
 
-		addiitionalQtyBuf := itObj
+		additionalQtyBuf := itObj
 
-		if err := parseCheck(len(addiitionalQtyBuf) != 8, "additional_qty must be provided as an 8-byte buffer"); err != nil {
+		if err := parseCheck(len(additionalQtyBuf) != 8, "additional_qty must be provided as an 8-byte buffer"); err != nil {
 			return nil, err
 		}
 

@@ -2,6 +2,7 @@ package goslp
 
 import (
 	"errors"
+	"fmt"
 
 	"github.com/gcash/bchd/chaincfg"
 	"github.com/gcash/bchd/wire"
@@ -52,7 +53,7 @@ func GetSlpTokenID(tx *wire.MsgTx) ([]byte, error) {
 		}
 		return tokenID, nil
 	} else {
-		panic("unknown error has occured")
+		return nil, fmt.Errorf("unknown error has occurred")
 	}
 }
 

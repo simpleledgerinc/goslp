@@ -197,7 +197,7 @@ type AddressPubKeyHash struct {
 	prefix string
 }
 
-// NewAddressPubKeyHash returns a new AddressPubKeyHash.  pkHash mustbe 20
+// NewAddressPubKeyHash returns a new AddressPubKeyHash.  pkHash must be 20
 // bytes.
 func NewAddressPubKeyHash(pkHash []byte, net *chaincfg.Params) (*AddressPubKeyHash, error) {
 	return newAddressPubKeyHash(pkHash, net)
@@ -245,7 +245,7 @@ func (a *AddressPubKeyHash) String() string {
 }
 
 // Hash160 returns the underlying array of the pubkey hash.  This can be useful
-// when an array is more appropiate than a slice (for example, when used as map
+// when an array is more appropriate than a slice (for example, when used as map
 // keys).
 func (a *AddressPubKeyHash) Hash160() *[ripemd160.Size]byte {
 	return &a.hash
@@ -312,7 +312,7 @@ func (a *AddressScriptHash) String() string {
 }
 
 // Hash160 returns the underlying array of the script hash.  This can be useful
-// when an array is more appropiate than a slice (for example, when used as map
+// when an array is more appropriate than a slice (for example, when used as map
 // keys).
 func (a *AddressScriptHash) Hash160() *[ripemd160.Size]byte {
 	return &a.hash
@@ -326,7 +326,7 @@ type LegacyAddressPubKeyHash struct {
 }
 
 // NewLegacyAddressPubKeyHash returns a new AddressPubKeyHash in the legacy
-// format. pkHash mustbe 20 bytes.
+// format. pkHash must be 20 bytes.
 func NewLegacyAddressPubKeyHash(pkHash []byte, net *chaincfg.Params) (*LegacyAddressPubKeyHash, error) {
 	return newLegacyAddressPubKeyHash(pkHash, net.LegacyPubKeyHashAddrID)
 }
@@ -373,7 +373,7 @@ func (a *LegacyAddressPubKeyHash) String() string {
 }
 
 // Hash160 returns the underlying array of the pubkey hash.  This can be useful
-// when an array is more appropiate than a slice (for example, when used as map
+// when an array is more appropriate than a slice (for example, when used as map
 // keys).
 func (a *LegacyAddressPubKeyHash) Hash160() *[ripemd160.Size]byte {
 	return &a.hash
@@ -440,7 +440,7 @@ func (a *LegacyAddressScriptHash) String() string {
 }
 
 // Hash160 returns the underlying array of the script hash.  This can be useful
-// when an array is more appropiate than a slice (for example, when used as map
+// when an array is more appropriate than a slice (for example, when used as map
 // keys).
 func (a *LegacyAddressScriptHash) Hash160() *[ripemd160.Size]byte {
 	return &a.hash
@@ -671,7 +671,7 @@ func polyMod(v []byte) uint64 {
 	 * code, guaranteeing detection of up to 4 errors within a window of 1025
 	 * characters. Among the various possible BCH codes, one was selected to in
 	 * fact guarantee detection of up to 5 errors within a window of 160
-	 * characters and 6 erros within a window of 126 characters. In addition,
+	 * characters and 6 errors within a window of 126 characters. In addition,
 	 * the code guarantee the detection of a burst of up to 8 errors.
 	 *
 	 * Note that the coefficients are elements of GF(32), here represented as
