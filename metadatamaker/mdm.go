@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"encoding/binary"
 	"errors"
+	"fmt"
 )
 
 // MintBatonVout used so that vout value can be set as nil
@@ -55,21 +56,17 @@ func CreateOpReturnGenesis(
 		mintBatonVoutBytes = []byte{uint8(mintBatonVout.vout)}
 	}
 
-	buf := bytes.Join([][]byte{
-		[]byte{0x6A}, // OP_RETURN
-		pushdata([]byte("SLP\x00")),
-		pushdata([]byte{uint8(versionType)}),
-		pushdata([]byte("GENESIS")),
-		pushdata(ticker),
-		pushdata(name),
-		pushdata(documentURL),
-		pushdata(documentHash),
-		pushdata([]byte{uint8(decimals)}),
-		pushdata(mintBatonVoutBytes),
-		pushdata(makeU64BigEndianBytes(quantity)),
-	}, []byte{})
-
-	return buf, nil
+	return encodeSlpScript([][]byte{
+		[]byte{uint8(versionType)},
+		[]byte("GENESIS"),
+		ticker,
+		name,
+		documentURL,
+		documentHash,
+		[]byte{uint8(decimals)},
+		mintBatonVoutBytes,
+		makeU64BigEndianBytes(quantity),
+	})
 }
 
 // CreateOpReturnMint creates serialized Mint op_return message
@@ -94,17 +91,13 @@ func CreateOpReturnMint(
 		mintBatonVoutBytes = []byte{uint8(mintBatonVout.vout)}
 	}
 
-	buf := bytes.Join([][]byte{
-		{0x6A}, // OP_RETURN
-		pushdata([]byte("SLP\x00")),
-		pushdata([]byte{uint8(versionType)}),
-		pushdata([]byte("MINT")),
-		pushdata(tokenIDHex),
-		pushdata(mintBatonVoutBytes),
-		pushdata(makeU64BigEndianBytes(quantity)),
-	}, []byte{})
-
-	return buf, nil
+	return encodeSlpScript([][]byte{
+		[]byte{uint8(versionType)},
+		[]byte("MINT"),
+		tokenIDHex,
+		mintBatonVoutBytes,
+		makeU64BigEndianBytes(quantity),
+	})
 }
 
 // CreateOpReturnSend create serialized Send op_return message
@@ -128,50 +121,61 @@ func CreateOpReturnSend(
 		return nil, errors.New("too many slp amounts")
 	}
 
-	amountPushdatas := make([][]byte, len(slpAmounts))
+	amounts := make([][]byte, len(slpAmounts))
 	for i, v := range slpAmounts {
-		amountPushdatas[i] = pushdata(makeU64BigEndianBytes(v))
+		amt := makeU64BigEndianBytes(v)
+		amounts[i] = amt
 	}
 
-	buf := bytes.Join([][]byte{
-		{0x6A}, // OP_RETURN
-		pushdata([]byte("SLP\x00")),
-		pushdata([]byte{uint8(versionType)}),
-		pushdata([]byte("SEND")),
-		pushdata(tokenIDHex),
-		bytes.Join(amountPushdatas, []byte{}),
-	}, []byte{})
+	chunks := make([][]byte, 3+len(amounts))
+	chunks[0] = []byte{uint8(versionType)}
+	chunks[1] = []byte("SEND")
+	chunks[2] = tokenIDHex
+	for i, amt := range amounts {
+		chunks[i+3] = amt
+	}
 
-	return buf, nil
+	return encodeSlpScript(chunks)
 }
 
-// https://golang.org/ref/spec#Slice_types
-// max len is int-1 which is size of the default integer on target build
-func pushdata(buf []byte) []byte {
+func pushSlpData(buf []byte) ([]byte, error) {
 	bufLen := len(buf)
 
 	if bufLen == 0 {
-		return []byte{0x4C, 0x00}
+		return []byte{0x4C, 0x00}, nil
 	} else if bufLen < 0x4E {
-		return bytes.Join([][]byte{{uint8(bufLen)}, buf}, []byte{})
+		return bytes.Join([][]byte{{uint8(bufLen)}, buf}, []byte{}), nil
 	} else if bufLen < 0xFF {
-		return bytes.Join([][]byte{{0x4C, uint8(bufLen)}, buf}, []byte{})
+		return bytes.Join([][]byte{{0x4C, uint8(bufLen)}, buf}, []byte{}), nil
 	} else if bufLen < 0xFFFF {
 		tmp := make([]byte, 2)
 		binary.LittleEndian.PutUint16(tmp, uint16(bufLen))
-		return bytes.Join([][]byte{{0x4D}, tmp, buf}, []byte{})
+		return bytes.Join([][]byte{{0x4D}, tmp, buf}, []byte{}), nil
 	} else if bufLen < 0xFFFFFFFF {
 		tmp := make([]byte, 4)
 		binary.LittleEndian.PutUint32(tmp, uint32(bufLen))
-		return bytes.Join([][]byte{{0x4E}, tmp, buf}, []byte{})
+		return bytes.Join([][]byte{{0x4E}, tmp, buf}, []byte{}), nil
 	} else {
-		panic("pushdata cannot support more than 0xFFFFFFFF elements")
+		return nil, fmt.Errorf("pushSlpData cannot support more than 0xFFFFFFFF elements")
 	}
 }
 
-// TODO we can use better name for this
 func makeU64BigEndianBytes(v uint64) []byte {
 	tmp := make([]byte, 8)
 	binary.BigEndian.PutUint64(tmp, v)
 	return tmp
+}
+
+func encodeSlpScript(chunks [][]byte) ([]byte, error) {
+	encoded := make([][]byte, len(chunks)+2)
+	encoded[0] = []byte{0x6A} // OP_RETURN
+	encoded[1] = []byte("\x04SLP\x00")
+	for i, chunk := range chunks {
+		pushChunk, err := pushSlpData(chunk)
+		if err != nil {
+			return nil, err
+		}
+		encoded[i+2] = pushChunk
+	}
+	return bytes.Join(encoded, []byte{}), nil
 }
