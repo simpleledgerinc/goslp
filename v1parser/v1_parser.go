@@ -255,14 +255,15 @@ func ParseSLP(scriptPubKey []byte) (*ParseResult, error) {
 	}
 
 	chunks := make([][]byte, 0)
-	for _len := extractPushdata(); _len >= 0; _len = extractPushdata() {
-		buf := make([]byte, _len)
-		if err := parseCheck(it+_len > len(itObj), "pushdata data extraction failed"); err != nil {
+	for chunkLen := extractPushdata(); chunkLen >= 0; chunkLen = extractPushdata() {
+		if err := parseCheck(it+chunkLen > len(itObj), "pushdata data extraction failed"); err != nil {
 			return nil, err
 		}
-		copy(buf, itObj[it:it+_len])
 
-		it += _len
+		buf := make([]byte, chunkLen)
+		copy(buf, itObj[it:it+chunkLen])
+
+		it += chunkLen
 		chunks = append(chunks, buf)
 		if len(chunks) == 1 {
 			bchMetaTag := chunks[0]
