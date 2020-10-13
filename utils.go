@@ -19,8 +19,8 @@ func GetSlpVersionType(slpPkScript []byte) (*uint8, error) {
 	if err != nil {
 		return nil, errors.New("unable to parse slp version")
 	}
-	_type := uint8(slpMsg.TokenType)
-	return &_type, nil
+	tokenType := uint8(slpMsg.TokenType())
+	return &tokenType, nil
 }
 
 // GetSlpTokenID returns the Token ID regardless of SLP version/type
@@ -40,11 +40,8 @@ func GetSlpTokenID(tx *wire.MsgTx) ([]byte, error) {
 		return nil, err
 	}
 
-	if slpMsg.TransactionType == "SEND" {
-		return slpMsg.Data.(v1parser.SlpSend).TokenID, nil
-	} else if slpMsg.TransactionType == "MINT" {
-		return slpMsg.Data.(v1parser.SlpMint).TokenID, nil
-	} else if slpMsg.TransactionType == "GENESIS" {
+	switch msg := slpMsg.(type) {
+	case v1parser.SlpGenesis:
 		hash := tx.TxHash()
 		var tokenID []byte
 		// reverse the bytes here since tokenID is coming from txn hash
@@ -52,7 +49,11 @@ func GetSlpTokenID(tx *wire.MsgTx) ([]byte, error) {
 			tokenID = append(tokenID, hash[i])
 		}
 		return tokenID, nil
-	} else {
+	case v1parser.SlpMint:
+		return msg.TokenID(), nil
+	case v1parser.SlpSend:
+		return msg.TokenID(), nil
+	default:
 		return nil, fmt.Errorf("unknown error has occurred")
 	}
 }

@@ -1,6 +1,6 @@
 /*
- * We use slp-validate's internal methods to get a JSON
- * Then we format this for consumption & comparison by differential fuzzer.
+ * Http server for fetching SLP parser results from javascript
+ * for consumption & comparison by differential fuzzer in ../v1parser/v1_parser_fuzz.go.
  */
 
 const fs = require('fs');
@@ -8,7 +8,6 @@ const turbo = require('turbo-http')
 const validate = require('slp-validate');
 
 const server = turbo.createServer(function (req, res) {
-    console.log(req.url);
     let y = null;
     try {
         const bin = Buffer.from(req.url[0] == '/' ? req.url.slice(1) : req.url, 'hex');
@@ -33,7 +32,7 @@ const server = turbo.createServer(function (req, res) {
             y.sendOutputs = y.sendOutputs.map((v) => v.toString());
         }
     } catch(e) {
-        const buf = Buffer.from(JSON.stringify({success: false, error: e.message}));
+        const buf = Buffer.from(JSON.stringify({success: false, errorMsg: e.message}));
         res.setHeader('Content-Length', buf.length);
         res.write(buf);
         return;

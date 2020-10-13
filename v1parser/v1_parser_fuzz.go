@@ -4,28 +4,35 @@ import (
 	"encoding/hex"
 	"encoding/json"
 	"fmt"
+	"io/ioutil"
 	"net/http"
 	"strconv"
+	"strings"
 )
 
-type jsData struct {
-	symbol                string
-	name                  string
-	documentURI           string
-	documentSha256        string
-	decimals              int
-	genesisOrMintQuantity string
-	sendOutputs           []string
-	transactionType       string
-	mintBatonVout         *int
+type jsParserResult struct {
+	Symbol                string
+	Name                  string
+	DocumentUri           string
+	DocumentSha256        string
+	Decimals              float64
+	GenesisOrMintQuantity string
+	SendOutputs           []string
+	TransactionType       string
+	BatonVout             *float64
+	VersionType           float64
+	TokenIdHex            string
+	ContainsBaton         bool
 }
 
 type jsResp struct {
-	success bool
-	data    jsData
+	Success  bool
+	Data     jsParserResult
+	ErrorMsg *string
 }
 
-// Fuzz implements interface for github.com/dvyuko/go-fuzz
+// Fuzz implements interface for running github.com/dvyuko/go-fuzz
+// For more information see ../fuzz/README.md
 func Fuzz(data []byte) int {
 
 	// print input
@@ -38,82 +45,83 @@ func Fuzz(data []byte) int {
 	}
 	defer resp.Body.Close()
 
-	var j jsResp
-	err = json.NewDecoder(resp.Body).Decode(&j)
+	// print the js parsed result
+	r, _ := ioutil.ReadAll(resp.Body)
+
+	var j *jsResp
+	err = json.Unmarshal(r, &j)
 	if err != nil {
 		panic(err)
 	}
 
-	// get goslp parser result
+	// get goslp.v1parser parser result
 	slpMsg, err := ParseSLP(data)
 
-	// check parsing errors throws in both impls.
+	// check parsing errors throws in both parser implementations.
 	if err != nil {
-		if !j.success {
+		if !j.Success {
 			return -1
 		}
 		panic(err.Error())
+	} else if j.Success == false {
+		panic("js parser or json unmarshaling failed, but goslp did not return an error")
 	}
 
 	// check matching values on each parsed property
-	switch _type := slpMsg.Data.(type) {
+	switch msg := slpMsg.(type) {
 	case *SlpGenesis:
-		if j.data.transactionType != "GENESIS" {
-			panic("transaction type does not match")
-		}
-		if string(_type.DocumentURI) != j.data.documentURI {
-			panic("document uri string does not match")
-		}
-		if hex.EncodeToString(_type.DocumentHash) != j.data.documentSha256 {
-			panic("document hash hex does not match")
-		}
-		if string(_type.Name) != j.data.name {
-			panic("name string does not match")
-		}
-		if _type.Decimals != j.data.decimals {
+		if msg.Decimals != int(j.Data.Decimals) {
 			panic("decimals does not match")
 		}
-		if j.data.mintBatonVout != nil {
-			if _type.MintBatonVout != *j.data.mintBatonVout {
+		if j.Data.BatonVout != nil {
+			if msg.MintBatonVout != int(*j.Data.BatonVout) {
 				panic("mint baton does not match")
 			}
 		}
-		jsQty, err := strconv.ParseUint(j.data.genesisOrMintQuantity, 0, 64)
+		jsQty, err := strconv.ParseUint(j.Data.GenesisOrMintQuantity, 0, 64)
 		if err != nil {
 			panic("bad uint64 value in slp-validate")
 		}
-		if _type.Qty != jsQty {
+		if msg.Qty != jsQty {
 			panic("genesis qty does not match")
 		}
 	case *SlpSend:
-		if j.data.transactionType != "SEND" {
+		if j.Data.TransactionType != transactionTypeSend {
 			panic("transaction type does not match")
 		}
-		if len(j.data.sendOutputs) == 0 || len(_type.Amounts) == 0 {
+		if len(j.Data.SendOutputs) == 0 || len(msg.Amounts) == 0 {
 			panic("cannot have 0 outputs in send")
 		}
-		for i, amt := range _type.Amounts {
-			jsQty, err := strconv.ParseUint(j.data.sendOutputs[i], 0, 64)
+		if strings.ToLower(j.Data.TokenIdHex) != hex.EncodeToString(msg.TokenID()) {
+			panic("token ID mismatch")
+		}
+		for i, amt := range msg.Amounts {
+			jsQty, err := strconv.ParseUint(j.Data.SendOutputs[i+1], 10, 64)
 			if err != nil {
 				panic("bad uint64 send value in slp-validate")
 			}
 			if amt != jsQty {
+				fmt.Println(amt)
+				fmt.Println(jsQty)
 				panic("send qty does not match")
 			}
 		}
 	case *SlpMint:
-		if j.data.transactionType != "MINT" {
+		if j.Data.TransactionType != transactionTypeMint {
 			panic("transaction type does not match")
 		}
-		jsQty, err := strconv.ParseUint(j.data.genesisOrMintQuantity, 0, 64)
+		if strings.ToLower(j.Data.TokenIdHex) != hex.EncodeToString(msg.TokenID()) {
+			panic("token ID mismatch")
+		}
+		jsQty, err := strconv.ParseUint(j.Data.GenesisOrMintQuantity, 0, 64)
 		if err != nil {
 			panic("bad uint64 value in slp-validate")
 		}
-		if _type.Qty != jsQty {
+		if msg.Qty != jsQty {
 			panic("genesis qty does not match")
 		}
-		if j.data.mintBatonVout != nil {
-			if _type.MintBatonVout != *j.data.mintBatonVout {
+		if j.Data.BatonVout != nil {
+			if msg.MintBatonVout != int(*j.Data.BatonVout) {
 				panic("mint baton does not match")
 			}
 		}

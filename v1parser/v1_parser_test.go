@@ -163,11 +163,8 @@ func TestGenesisParseSlp(t *testing.T) {
 	if err != nil {
 		t.Fatal(err.Error())
 	}
-	if slpMsg.Data.(SlpGenesis).Qty != 18446744073709551615 {
+	if slpMsg.(*SlpGenesis).Qty != 18446744073709551615 {
 		t.Error("incorrect mint qty")
-	}
-	if slpMsg.TransactionType != "GENESIS" {
-		t.Error("not genesis")
 	}
 }
 
@@ -177,14 +174,11 @@ func TestSendParseSlp(t *testing.T) {
 	if err != nil {
 		t.Fatal(err.Error())
 	}
-	if slpMsg.TransactionType != "SEND" {
-		t.Error("not send")
-	}
-	if slpMsg.Data.(SlpSend).Amounts[0] != 6000000000 {
+	if slpMsg.(*SlpSend).Amounts[0] != 6000000000 {
 		t.Error("incorrect send qty")
 	}
 	tokenID, err := hex.DecodeString("d6876f0fce603be43f15d34348bb1de1a8d688e1152596543da033a060cff798")
-	if !reflect.DeepEqual(slpMsg.Data.(SlpSend).TokenID, tokenID) {
+	if !reflect.DeepEqual(slpMsg.(*SlpSend).TokenID(), tokenID) {
 		t.Error("incorrect tokenID")
 	}
 }
@@ -195,14 +189,11 @@ func TestMintParseSlp(t *testing.T) {
 	if err != nil {
 		t.Fatal(err.Error())
 	}
-	if slpMsg.TransactionType != "MINT" {
-		t.Error("not mint")
-	}
-	if slpMsg.Data.(SlpMint).Qty != 400000000 {
+	if slpMsg.(*SlpMint).Qty != 400000000 {
 		t.Error("incorrect mint qty")
 	}
 	tokenID, err := hex.DecodeString("d6876f0fce603be43f15d34348bb1de1a8d688e1152596543da033a060cff798")
-	if !reflect.DeepEqual(slpMsg.Data.(SlpMint).TokenID, tokenID) {
+	if !reflect.DeepEqual(slpMsg.(*SlpMint).TokenID(), tokenID) {
 		t.Error("incorrect tokenID")
 	}
 }
