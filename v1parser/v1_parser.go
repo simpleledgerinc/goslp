@@ -8,8 +8,8 @@ import (
 	"github.com/gcash/bchd/txscript"
 )
 
-// TokenType is an int representing the slp version type
-type TokenType int
+// TokenType is an uint16 representing the slp version type
+type TokenType uint16
 
 const (
 	// TokenTypeFungible01 version type used for ParseResult.TokenType
