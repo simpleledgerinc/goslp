@@ -35,6 +35,11 @@ type jsResp struct {
 // For more information see ../fuzz/README.md
 func Fuzz(data []byte) int {
 
+	// ignore excessively large packages
+	if len(data) > 100000 {
+		return -1
+	}
+
 	// print input
 	fmt.Println(hex.EncodeToString(data))
 
@@ -126,7 +131,7 @@ func Fuzz(data []byte) int {
 			}
 		}
 	default:
-		return 0
+		panic("parser did not throw an error but did not match any parse result")
 	}
 
 	// parsing results are lexically correct and was parsed successfully

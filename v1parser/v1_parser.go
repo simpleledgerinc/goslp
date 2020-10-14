@@ -34,7 +34,7 @@ type ParseResult interface {
 	TotalSlpMsgOutputValue() (*big.Int, error)
 }
 
-// SlpGenesis is an unmarshalled Genesis OP_RETURN
+// SlpGenesis is an unmarshalled Genesis ParseResult
 type SlpGenesis struct {
 	tokenType                               TokenType
 	Ticker, Name, DocumentURI, DocumentHash []byte
@@ -73,7 +73,7 @@ func (r SlpGenesis) TotalSlpMsgOutputValue() (*big.Int, error) {
 	return total, nil
 }
 
-// SlpMint is an unmarshalled Mint OP_RETURN
+// SlpMint is an unmarshalled Mint ParseResult
 type SlpMint struct {
 	tokenID       []byte
 	tokenType     TokenType
@@ -113,7 +113,7 @@ func (r SlpMint) TotalSlpMsgOutputValue() (*big.Int, error) {
 	return total, nil
 }
 
-// SlpSend is an unmarshalled Send OP_RETURN
+// SlpSend is an unmarshalled Send ParseResult
 type SlpSend struct {
 	tokenID   []byte
 	tokenType TokenType
