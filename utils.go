@@ -41,7 +41,7 @@ func GetSlpTokenID(tx *wire.MsgTx) ([]byte, error) {
 	}
 
 	switch msg := slpMsg.(type) {
-	case v1parser.SlpGenesis:
+	case *v1parser.SlpGenesis:
 		hash := tx.TxHash()
 		var tokenID []byte
 		// reverse the bytes here since tokenID is coming from txn hash
@@ -49,9 +49,9 @@ func GetSlpTokenID(tx *wire.MsgTx) ([]byte, error) {
 			tokenID = append(tokenID, hash[i])
 		}
 		return tokenID, nil
-	case v1parser.SlpMint:
+	case *v1parser.SlpMint:
 		return msg.TokenID(), nil
-	case v1parser.SlpSend:
+	case *v1parser.SlpSend:
 		return msg.TokenID(), nil
 	default:
 		return nil, fmt.Errorf("unknown error has occurred")
