@@ -4,9 +4,7 @@ import (
 	"errors"
 	"fmt"
 
-	"github.com/gcash/bchd/chaincfg"
 	"github.com/gcash/bchd/wire"
-	"github.com/gcash/bchutil"
 
 	"github.com/simpleledgerinc/goslp/v1parser"
 )
@@ -56,56 +54,6 @@ func GetSlpTokenID(tx *wire.MsgTx) ([]byte, error) {
 	default:
 		return nil, fmt.Errorf("unknown error has occurred")
 	}
-}
-
-// ConvertSlpToCashAddress converts an slp formatted address to cash formatted address
-func ConvertSlpToCashAddress(addr Address, params *chaincfg.Params) (bchutil.Address, error) {
-	var (
-		bchAddr bchutil.Address
-		err     error
-	)
-	switch a := addr.(type) {
-	case *AddressPubKeyHash:
-		hash := a.Hash160()
-		bchAddr, err = bchutil.NewAddressPubKeyHash(hash[:], params)
-		if err != nil {
-			return nil, err
-		}
-	case *AddressScriptHash:
-		hash := a.Hash160()
-		bchAddr, err = bchutil.NewAddressScriptHash(hash[:], params)
-		if err != nil {
-			return nil, err
-		}
-	default:
-		return nil, errors.New("address being converted must be type goslp.AddressPubKeyHash or goslp.AddressScriptHash")
-	}
-	return bchAddr, nil
-}
-
-// ConvertCashToSlpAddress converts a cash formatted address to slp formatted address
-func ConvertCashToSlpAddress(addr Address, params *chaincfg.Params) (bchutil.Address, error) {
-	var (
-		bchAddr bchutil.Address
-		err     error
-	)
-	switch a := addr.(type) {
-	case *bchutil.AddressPubKeyHash:
-		hash := a.Hash160()
-		bchAddr, err = NewAddressPubKeyHash(hash[:], params)
-		if err != nil {
-			return nil, err
-		}
-	case *bchutil.AddressScriptHash:
-		hash := a.Hash160()
-		bchAddr, err = NewAddressScriptHash(hash[:], params)
-		if err != nil {
-			return nil, err
-		}
-	default:
-		return nil, errors.New("address being converted must be type bchutil.AddressPubKeyHash or bchutil.AddressScriptHash")
-	}
-	return bchAddr, nil
 }
 
 func contains(s []int, e int) bool {
