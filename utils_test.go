@@ -1,4 +1,4 @@
-package goslp
+package goslp_test
 
 import (
 	"bytes"
@@ -6,6 +6,7 @@ import (
 	"testing"
 
 	"github.com/gcash/bchd/wire"
+	"github.com/simpleledgerinc/goslp"
 )
 
 func TestGetSlpTokenIDGenesis(t *testing.T) {
@@ -22,7 +23,7 @@ func TestGetSlpTokenIDGenesis(t *testing.T) {
 		t.Fatal(err.Error())
 	}
 
-	_, err = GetSlpTokenID(tx)
+	_, err = goslp.GetSlpTokenID(tx)
 	if err != nil {
 		t.Fatal(err)
 	}

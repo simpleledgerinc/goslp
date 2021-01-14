@@ -4,8 +4,6 @@ import (
 	"encoding/binary"
 	"errors"
 	"math/big"
-
-	"github.com/gcash/bchd/txscript"
 )
 
 // TokenType is an uint16 representing the slp version type
@@ -196,7 +194,7 @@ func ParseSLP(scriptPubKey []byte) (ParseResult, error) {
 	if len(itObj) == 0 {
 		return nil, errors.New("scriptpubkey cannot be empty")
 	}
-	if int(itObj[it]) != txscript.OP_RETURN {
+	if int(itObj[it]) != OP_RETURN {
 		return nil, errors.New("scriptpubkey not op_return")
 	}
 	if len(itObj) < 10 {
@@ -210,25 +208,25 @@ func ParseSLP(scriptPubKey []byte) (ParseResult, error) {
 			return -1
 		}
 		cnt := extractU8()
-		if cnt > txscript.OP_0 && cnt < txscript.OP_PUSHDATA1 {
+		if cnt > OP_0 && cnt < OP_PUSHDATA1 {
 			if it+cnt > len(itObj) {
 				it--
 				return -1
 			}
 			return cnt
-		} else if cnt == txscript.OP_PUSHDATA1 {
+		} else if cnt == OP_PUSHDATA1 {
 			if it+1 >= len(itObj) {
 				it--
 				return -1
 			}
 			return extractU8()
-		} else if cnt == txscript.OP_PUSHDATA2 {
+		} else if cnt == OP_PUSHDATA2 {
 			if it+2 >= len(itObj) {
 				it--
 				return -1
 			}
 			return extractU16(true)
-		} else if cnt == txscript.OP_PUSHDATA4 {
+		} else if cnt == OP_PUSHDATA4 {
 			if it+4 >= len(itObj) {
 				it--
 				return -1
@@ -567,3 +565,11 @@ func ParseSLP(scriptPubKey []byte) (ParseResult, error) {
 
 	return nil, errors.New("impossible parsing result")
 }
+
+const (
+	OP_0         = 0x00 // 0
+	OP_PUSHDATA1 = 0x4c // 76
+	OP_PUSHDATA2 = 0x4d // 77
+	OP_PUSHDATA4 = 0x4e // 78
+	OP_RETURN    = 0x6a // 106
+)

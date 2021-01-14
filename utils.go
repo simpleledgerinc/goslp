@@ -5,7 +5,6 @@ import (
 	"fmt"
 
 	"github.com/gcash/bchd/wire"
-
 	"github.com/simpleledgerinc/goslp/v1parser"
 )
 
@@ -23,10 +22,6 @@ func GetSlpVersionType(slpPkScript []byte) (*uint8, error) {
 
 // GetSlpTokenID returns the Token ID regardless of SLP version/type
 func GetSlpTokenID(tx *wire.MsgTx) ([]byte, error) {
-
-	if tx == nil {
-		return nil, errors.New("tx is nil")
-	}
 
 	if len(tx.TxOut) < 1 {
 		return nil, errors.New("transaction has no outputs")
