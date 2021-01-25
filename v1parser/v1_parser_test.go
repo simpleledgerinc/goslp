@@ -43,7 +43,7 @@ func TestSlpMessageUnitTests(t *testing.T) {
 func TestGetOutputAmountSend(t *testing.T) {
 	scriptPubKey, _ := hex.DecodeString("6a04534c500001010453454e4420c4b0d62156b3fa5c8f3436079b5394f7edc1bef5dc1cd2f9d0c4d46f82cca47908000000000000000108000000000000000408000000000000005a")
 	slpMsg, _ := ParseSLP(scriptPubKey)
-	amt, _ := slpMsg.GetVoutAmount(3)
+	amt, _ := slpMsg.GetVoutValue(3)
 	if amt.Cmp(big.NewInt(90)) != 0 {
 		t.Error("incorrect amount parsed for index")
 	}
@@ -52,7 +52,7 @@ func TestGetOutputAmountSend(t *testing.T) {
 func TestGetOutputAmountSendNotNegative(t *testing.T) {
 	scriptPubKey, _ := hex.DecodeString("6a04534c500001010453454e4420c4b0d62156b3fa5c8f3436079b5394f7edc1bef5dc1cd2f9d0c4d46f82cca47908ffffffffffffffff")
 	slpMsg, _ := ParseSLP(scriptPubKey)
-	amt, _ := slpMsg.GetVoutAmount(1)
+	amt, _ := slpMsg.GetVoutValue(1)
 	if amt.Cmp(big.NewInt(0)) < 1 {
 		t.Error("amount is less than zero")
 	}
@@ -64,7 +64,7 @@ func TestGetOutputAmountSendNotNegative(t *testing.T) {
 func TestGetOutputAmountMint(t *testing.T) {
 	scriptPubKey, _ := hex.DecodeString("6a04534c50000101044d494e5420d6876f0fce603be43f15d34348bb1de1a8d688e1152596543da033a060cff798010208000000000bebc200")
 	slpMsg, _ := ParseSLP(scriptPubKey)
-	amt, _ := slpMsg.GetVoutAmount(1)
+	amt, _ := slpMsg.GetVoutValue(1)
 	if amt.Cmp(big.NewInt(200000000)) != 0 {
 		t.Error("incorrect amount parsed for index")
 	}
@@ -73,8 +73,11 @@ func TestGetOutputAmountMint(t *testing.T) {
 func TestGetOutputAmountMintVout2(t *testing.T) {
 	scriptPubKey, _ := hex.DecodeString("6a04534c50000101044d494e5420d6876f0fce603be43f15d34348bb1de1a8d688e1152596543da033a060cff798010208000000000bebc200")
 	slpMsg, _ := ParseSLP(scriptPubKey)
-	amt, _ := slpMsg.GetVoutAmount(2)
-	if amt.Cmp(big.NewInt(0)) != 0 {
+	amt, isBaton := slpMsg.GetVoutValue(2)
+	if isBaton != true {
+		t.Error("this is a baton")
+	}
+	if amt != nil {
 		t.Error("incorrect amount parsed for index")
 	}
 }
@@ -82,7 +85,7 @@ func TestGetOutputAmountMintVout2(t *testing.T) {
 func TestGetOutputAmountMintVoutNotNegative(t *testing.T) {
 	scriptPubKey, _ := hex.DecodeString("6a04534c50000101044d494e5420d6876f0fce603be43f15d34348bb1de1a8d688e1152596543da033a060cff798010208ffffffffffffffff")
 	slpMsg, _ := ParseSLP(scriptPubKey)
-	amt, _ := slpMsg.GetVoutAmount(1)
+	amt, _ := slpMsg.GetVoutValue(1)
 	if amt.Cmp(big.NewInt(0)) < 1 {
 		t.Error("amount is less than zero")
 	}
@@ -94,7 +97,7 @@ func TestGetOutputAmountMintVoutNotNegative(t *testing.T) {
 func TestGetOutputAmountGenesis(t *testing.T) {
 	scriptPubKey, _ := hex.DecodeString("6a04534c500001010747454e45534953074f6e65436f696e074f6e65436f696e4c5468747470733a2f2f7468656e6578747765622e636f6d2f68617264666f726b2f323031392f31322f32332f6f6e65636f696e2d63727970746f63757272656e63792d7363616d2d6e6565642d746f2d6b6e6f772f4c00010401020800000061c9f36800")
 	slpMsg, _ := ParseSLP(scriptPubKey)
-	amt, _ := slpMsg.GetVoutAmount(1)
+	amt, _ := slpMsg.GetVoutValue(1)
 	if amt.Cmp(big.NewInt(420000000000)) != 0 {
 		t.Error("incorrect amount parsed for index")
 	}
@@ -103,8 +106,11 @@ func TestGetOutputAmountGenesis(t *testing.T) {
 func TestGetOutputAmountGenesisVout2(t *testing.T) {
 	scriptPubKey, _ := hex.DecodeString("6a04534c500001010747454e45534953074f6e65436f696e074f6e65436f696e4c5468747470733a2f2f7468656e6578747765622e636f6d2f68617264666f726b2f323031392f31322f32332f6f6e65636f696e2d63727970746f63757272656e63792d7363616d2d6e6565642d746f2d6b6e6f772f4c00010401020800000061c9f36800")
 	slpMsg, _ := ParseSLP(scriptPubKey)
-	amt, _ := slpMsg.GetVoutAmount(2)
-	if amt.Cmp(big.NewInt(0)) != 0 {
+	amt, isBaton := slpMsg.GetVoutValue(2)
+	if isBaton != true {
+		t.Error("this is a baton")
+	}
+	if amt != nil {
 		t.Error("incorrect amount parsed for index")
 	}
 }
@@ -112,7 +118,7 @@ func TestGetOutputAmountGenesisVout2(t *testing.T) {
 func TestGetOutputAmountGenesisVoutNotNegative(t *testing.T) {
 	scriptPubKey, _ := hex.DecodeString("6a04534c500001010747454e45534953074f6e65436f696e074f6e65436f696e4c5468747470733a2f2f7468656e6578747765622e636f6d2f68617264666f726b2f323031392f31322f32332f6f6e65636f696e2d63727970746f63757272656e63792d7363616d2d6e6565642d746f2d6b6e6f772f4c000104010208ffffffffffffffff")
 	slpMsg, _ := ParseSLP(scriptPubKey)
-	amt, _ := slpMsg.GetVoutAmount(1)
+	amt, _ := slpMsg.GetVoutValue(1)
 	if amt.Cmp(big.NewInt(0)) < 1 {
 		t.Error("amount is less than zero")
 	}

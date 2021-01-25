@@ -28,7 +28,7 @@ const (
 type ParseResult interface {
 	TokenType() TokenType
 	TokenID() []byte
-	GetVoutAmount(vout int) (*big.Int, error)
+	GetVoutValue(vout int) (*big.Int, bool)
 	TotalSlpMsgOutputValue() (*big.Int, error)
 }
 
@@ -50,18 +50,23 @@ func (r SlpGenesis) TokenID() []byte {
 	return nil
 }
 
-// GetVoutAmount returns the output amount for a given transaction output index
-func (r SlpGenesis) GetVoutAmount(vout int) (*big.Int, error) {
-	amt := big.NewInt(0)
+// GetVoutValue returns the output amount or boolean flag indicating
+// the index is a mint baton for a given transaction output index.
+// Out of range vout returns nil.
+func (r SlpGenesis) GetVoutValue(vout int) (*big.Int, bool) {
+
+	if r.MintBatonVout == vout {
+		return nil, true
+	}
 
 	if vout == 0 {
-		return amt, nil
+		return nil, false
 	}
 
 	if vout == 1 {
-		return amt.Add(amt, new(big.Int).SetUint64(r.Qty)), nil
+		return new(big.Int).SetUint64(r.Qty), false
 	}
-	return amt, nil
+	return nil, false
 }
 
 // TotalSlpMsgOutputValue computes the output amount transferred in a transaction
@@ -89,18 +94,23 @@ func (r SlpMint) TokenID() []byte {
 	return r.tokenID
 }
 
-// GetVoutAmount returns the output amount for a given transaction output index
-func (r SlpMint) GetVoutAmount(vout int) (*big.Int, error) {
-	amt := big.NewInt(0)
+// GetVoutValue returns the output amount or boolean flag indicating
+// the index is a mint baton for a given transaction output index.
+// Out of range vout returns nil.
+func (r SlpMint) GetVoutValue(vout int) (*big.Int, bool) {
+
+	if r.MintBatonVout == vout {
+		return nil, true
+	}
 
 	if vout == 0 {
-		return amt, nil
+		return nil, false
 	}
 
 	if vout == 1 {
-		return amt.Add(amt, new(big.Int).SetUint64(r.Qty)), nil
+		return new(big.Int).SetUint64(r.Qty), false
 	}
-	return amt, nil
+	return nil, false
 }
 
 // TotalSlpMsgOutputValue computes the output amount transferred in a transaction
@@ -128,18 +138,19 @@ func (r SlpSend) TokenID() []byte {
 	return r.tokenID
 }
 
-// GetVoutAmount returns the output amount for a given transaction output index
-func (r SlpSend) GetVoutAmount(vout int) (*big.Int, error) {
-	amt := big.NewInt(0)
-
+// GetVoutValue returns the output amount or boolean flag indicating
+// the index is a mint baton for a given transaction output index.
+// Out of range vout returns nil.
+func (r SlpSend) GetVoutValue(vout int) (*big.Int, bool) {
 	if vout == 0 {
-		return amt, nil
+		return nil, false
 	}
 
 	if vout > len(r.Amounts) {
-		return amt, nil
+		return nil, false
 	}
-	return amt.Add(amt, new(big.Int).SetUint64(r.Amounts[vout-1])), nil
+
+	return new(big.Int).SetUint64(r.Amounts[vout-1]), false
 }
 
 // TotalSlpMsgOutputValue computes the output amount transferred in a transaction
