@@ -16,12 +16,18 @@ const (
 	TokenTypeNft1Child41 TokenType = 0x41
 	// TokenTypeNft1Group81 version type used for ParseResult.TokenType
 	TokenTypeNft1Group81 TokenType = 0x81
-	// TransactionTypeGenesis transaction type used for ParseResult.TransactionType
+	// transactionTypeGenesis transaction type used for ParseResult.TransactionType
 	transactionTypeGenesis string = "GENESIS"
-	// TransactionTypeMint transaction type used for ParseResult.TransactionType
+	// transactionTypeMint transaction type used for ParseResult.TransactionType
 	transactionTypeMint string = "MINT"
-	// TransactionTypeSend transaction type used for ParseResult.TransactionType
+	// transactionTypeSend transaction type used for ParseResult.TransactionType
 	transactionTypeSend string = "SEND"
+)
+
+var (
+	// ErrUnsupportedSlpVersion is an error that indicates the parsed slp metadata is
+	// an unsupported version
+	ErrUnsupportedSlpVersion = errors.New("token_type not token-type1, nft1-group, or nft1-child")
 )
 
 // ParseResult returns the parsed result.
@@ -336,7 +342,7 @@ func ParseSLP(scriptPubKey []byte) (ParseResult, error) {
 	if tokenType != TokenTypeFungible01 &&
 		tokenType != TokenTypeNft1Child41 &&
 		tokenType != TokenTypeNft1Group81 {
-		return nil, errors.New("token_type not token-type1, nft1-group, or nft1-child")
+		return nil, ErrUnsupportedSlpVersion
 	}
 
 	if err := checkNext(); err != nil {
