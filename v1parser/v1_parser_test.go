@@ -11,6 +11,9 @@ import (
 )
 
 func TestSlpMessageUnitTests(t *testing.T) {
+
+	// parsing tests are from:
+	// https://github.com/simpleledger/slp-unit-test-data#part-a-parsing-of-op_return-scripts
 	inputTestsFile, err := os.Open("v1_parser_test_opreturn.json")
 	if err != nil {
 		t.Fatal(err.Error())
@@ -18,6 +21,9 @@ func TestSlpMessageUnitTests(t *testing.T) {
 	data, err := ioutil.ReadAll(inputTestsFile)
 	defer inputTestsFile.Close()
 
+	// TestCase is the json object parsed from v1_parser_test_op_return.json
+	// Code is for invalid reasons, for meanings see:
+	// https://github.com/simpleledger/slp-unit-test-data#invalidation-reason-codes
 	type TestCase struct {
 		Msg    string
 		Script string
