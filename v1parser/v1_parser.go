@@ -350,8 +350,9 @@ func ParseSLP(scriptPubKey []byte) (ParseResult, error) {
 	}
 
 	transactionType := string(itObj)
-	if transactionType == transactionTypeGenesis {
 
+	switch transactionType {
+	case transactionTypeGenesis:
 		if len(chunks) != 10 {
 			return nil, errors.New("wrong number of chunks")
 		}
@@ -461,8 +462,8 @@ func ParseSLP(scriptPubKey []byte) (ParseResult, error) {
 			MintBatonVout: mintBatonVout,
 			Qty:           uint64(qty),
 		}, nil
-	} else if transactionType == transactionTypeMint {
 
+	case transactionTypeMint:
 		if tokenType == TokenTypeNft1Child41 {
 			return nil, errors.New("nft1 child cannot have mint transaction type")
 		}
@@ -524,8 +525,8 @@ func ParseSLP(scriptPubKey []byte) (ParseResult, error) {
 			MintBatonVout: mintBatonVout,
 			Qty:           uint64(qty),
 		}, nil
-	} else if transactionType == transactionTypeSend {
 
+	case transactionTypeSend:
 		if len(chunks) < 4 {
 			return nil, errors.New("wrong number of chunks")
 		}
@@ -580,7 +581,7 @@ func ParseSLP(scriptPubKey []byte) (ParseResult, error) {
 		}, nil
 	}
 
-	return nil, errors.New("impossible parsing result")
+	return nil, errors.New("unrecognized transaction type")
 }
 
 const (
