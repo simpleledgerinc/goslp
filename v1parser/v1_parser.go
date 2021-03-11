@@ -16,11 +16,11 @@ const (
 	TokenTypeNft1Child41 TokenType = 0x41
 	// TokenTypeNft1Group81 version type used for ParseResult.TokenType
 	TokenTypeNft1Group81 TokenType = 0x81
-	// transactionTypeGenesis transaction type used for ParseResult.TransactionType
+	// transactionTypeGenesis transaction type used during parsing
 	transactionTypeGenesis string = "GENESIS"
-	// transactionTypeMint transaction type used for ParseResult.TransactionType
+	// transactionTypeMint transaction type used during parsing
 	transactionTypeMint string = "MINT"
-	// transactionTypeSend transaction type used for ParseResult.TransactionType
+	// transactionTypeSend transaction type used during parsing
 	transactionTypeSend string = "SEND"
 )
 
